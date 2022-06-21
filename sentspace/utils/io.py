@@ -32,7 +32,7 @@ def create_output_paths(input_file:str, output_dir:str, calling_module=None, sto
     Returns:
         Path: [description]
     """    
-    output_dir = Path(output_dir)
+    output_dir = Path(output_dir).expanduser().resolve()
     # output will be organized based on its respective input file,
     # together with a hash of the contents (for to avoid the case where two files are 
     # named similarly to one another but contain different contents)
@@ -112,16 +112,29 @@ def read_sentences(filename: str, stop_words_file: str = None):
     return sentences
 
 
-def get_batches(iterable, batch_size:int):
+def get_batches(iterable, batch_size:int, 
+                limit:float=float('inf'), offset:int=0):
     """
     splits iterable into batches of size batch_size
     """
+
     batch = []
+    count = 0
     for i, item in enumerate(iterable):
+        # skip till we hit the offset
+        if i < offset: continue
+
         batch.append(item)
-        if (i + 1) % batch_size == 0:
+        count += 1
+
+        # batch size reached, or limit reached
+        if (i + 1) % batch_size == 0 or count >= limit:
             yield batch
             batch = []
+
+        # if we have accumulated enough items, return
+        if count >= limit:
+            return
     if batch:
         yield batch
 

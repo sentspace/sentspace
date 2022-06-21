@@ -69,23 +69,42 @@ def main(**kwargs):
                          help='path to output directory where results may be stored')
     # parser.add_argument('--cache_dir', default=)
 
+    parser.add_argument('--syntax_port', type=int, default=8000, help='The port where Syntax module\'s parser is running. '
+                                                                      'The syntax module requires a parser server based on '
+                                                                      'https://github.com/aalok-sathe/berkeley-interact.')
+
+    parser.add_argument('--limit', type=float, default=float('inf'), help='Limit input to X sentences in total')
+    parser.add_argument('--offset', type=int, default=0, help='Skip the first X sentences')
+
     args = parser.parse_args()	
     
     utils.io.log(f'SENTSPACE. Received arguments: {args}')
+    
+    # dummy call with no arguments just to get the output dir
+    output_dir = sentspace.run_sentence_features_pipeline(args.input_file, output_dir=args.output_dir)
+    with (output_dir/'STATUS').open('w+') as f:
+        f.write('RUNNING')
 
     # Estimate sentence embeddings
-    output_dir = sentspace.run_sentence_features_pipeline(args.input_file, stop_words_file=args.stop_words,
-                                                          benchmark_file=args.benchmark, process_lexical=args.lexical,
-                                                          process_syntax=args.syntax, process_embedding=args.embedding,
-                                                          process_semantic=args.semantic,
-                                                          output_dir=args.output_dir,
-                                                          output_format=args.output_format,
-                                                          parallelize=args.parallelize,
-                                                          # TODO: return_df or return_path?
-                                                          emb_data_dir=args.emb_data_dir)
+    try:
+        output_dir = sentspace.run_sentence_features_pipeline(args.input_file, stop_words_file=args.stop_words,
+                                                            benchmark_file=args.benchmark, process_lexical=args.lexical,
+                                                            process_syntax=args.syntax, process_embedding=args.embedding,
+                                                            process_semantic=args.semantic,
+                                                            output_dir=args.output_dir,
+                                                            output_format=args.output_format,
+                                                            parallelize=args.parallelize,
+                                                            # TODO: return_df or return_path?
+                                                            emb_data_dir=args.emb_data_dir,
+                                                            syntax_port=args.syntax_port,
+                                                            limit=args.limit, offset=args.offset,)
+    except Exception as e:
+        with (output_dir/'STATUS').open('w+') as f:
+                f.write('FAILED')
+        raise e
 
-    with (output_dir/'FINISHED').open('w+') as f:
-        pass
+    with (output_dir/'STATUS').open('w+') as f:
+        f.write('SUCCESS')
 
 if __name__ == "__main__":
     main() 

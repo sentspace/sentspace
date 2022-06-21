@@ -1,29 +1,22 @@
 '''
-    ### Sentspace 0.0.1 (C) 2020-2021 EvLab <evlab.mit.edu>, MIT BCS. All rights reserved.
+    ### Sentspace 0.0.2 (C) 2020-2022 [EvLab](evlab.mit.edu), MIT BCS. All rights reserved.
 
-    Homepage: https://github.com/aalok-sathe/sentspace
+    Homepage: https://github.com/sentspace/sentspace
 
-    Authors (reverse alphabet.; insert `@` symbol for valid email):
+    Authors & Contributors: 
     
-    - Greta Tuckute `<gretatu % mit.edu>`
-    - Aalok Sathe `<asathe % mit.edu>`
-    - Alvince Pongos `<apongos % mit.edu>`
-    - Josef Affourtit `<jaffourt % mit.edu>`
-
-    Please contact any of the following with questions about the code or license.
+    Greta Tuckute, Aalok Sathe, Mingye Wang, Harley Yoder, Cory Shain, Alvince Pongos, Josef Affourtit, Ev Fedorenko
     
-    - Aalok Sathe `<asathe % mit.edu>` 
-    - Greta Tuckute `<gretatu % mit.edu>`
+    `{gretatu,asathe} @ mit.edu`    
 
     .. include:: ../README.md
 '''
 
-# __pdoc__ = {'semantic': False,
-#             }
 
 
 from collections import defaultdict
 from pathlib import Path
+
 
 import sentspace.utils as utils
 import sentspace.syntax as syntax
@@ -46,6 +39,8 @@ def run_sentence_features_pipeline(input_file: str, stop_words_file: str = None,
                                    parallelize: bool = True,
                                    # preserve_metadata: bool = True,
                                    #
+                                   syntax_port: int = 8000,
+                                   limit: float = float('inf'), offset: int = 0,
                                    emb_data_dir: str = None) -> Path:
     """
     Runs the full sentence features pipeline on the given input according to
@@ -84,7 +79,8 @@ def run_sentence_features_pipeline(input_file: str, stop_words_file: str = None,
     utils.io.log('---done--- reading input sentences')
 
 
-    for part, sentence_batch in enumerate(tqdm(utils.io.get_batches(sentences, batch_size=batch_size), 
+    for part, sentence_batch in enumerate(tqdm(utils.io.get_batches(sentences, batch_size=batch_size, 
+                                                                    limit=limit, offset=offset), 
                                                desc='processing batches', total=len(sentences)//batch_size+1)):
         sentence_features_filestem = f'sentence-features_part{part:0>4}'
         token_features_filestem = f'token-features_part{part:0>4}'
@@ -132,17 +128,15 @@ def run_sentence_features_pipeline(input_file: str, stop_words_file: str = None,
 
             # as an exception, we do *not* parallelize syntax since the backend server is somehow unable to handle
             # multiple requests :(
-            syntax_features = [syntax.get_features(sentence._raw, dlt=True, left_corner=True, identifier=sentence.uid)
+            syntax_features = [syntax.get_features(sentence._raw, dlt=True, left_corner=True, identifier=sentence.uid,
+                                                   syntax_port=syntax_port)
                                                                         # !!! TODO:DEBUG
-                            for i, sentence in enumerate(tqdm(sentences, desc='Syntax pipeline'))]
-
-            syntax_out = output_dir / 'syntax'
-            syntax_out.mkdir(parents=True, exist_ok=True)
+                               for i, sentence in enumerate(tqdm(sentence_batch, desc='Syntax pipeline'))] 
 
             # put all features in the sentence df except the token-level ones
             token_syntax_features = {'dlt', 'leftcorner'}
             sentence_df = pd.DataFrame([{k: v for k, v in feature_dict.items() if k not in token_syntax_features}
-                                        for feature_dict in syntax_features], index=[s.uid() for s in sentences])
+                                        for feature_dict in syntax_features], index=[s.uid for s in sentence_batch])
 
             # output gives us dataframes corresponding to each token-level feature. we need to combine these
             # into a single dataframe
@@ -157,15 +151,21 @@ def run_sentence_features_pipeline(input_file: str, stop_words_file: str = None,
             token_df = reduce(lambda x, y: pd.concat([x, y], ignore_index=True), token_dfs)
             token_df = token_df.loc[:, ~token_df.columns.duplicated()]
 
+            syntax_out = output_dir / 'syntax'
+            syntax_out.mkdir(parents=True, exist_ok=True)
             utils.io.log(f'outputting syntax dataframes to {syntax_out}')
+
             if output_format == 'tsv':
                 sentence_df.to_csv(syntax_out / f'{sentence_features_filestem}.tsv', sep='\t', index=True)
-                token_df.to_csv(syntax_out / f'{token_features_filestem}.tsv', sep='\t', index=False)
+                token_df.to_csv(syntax_out / f'{token_features_filestem}.tsv', sep='\t', index=True)
             elif output_format == 'pkl':
                 sentence_df.to_pickle(syntax_out / f'{sentence_features_filestem}.pkl.gz', protocol=5)
                 token_df.to_pickle(syntax_out / f'{token_features_filestem}.pkl.gz', protocol=5)
+            else:
+                raise ValueError(f'unknown output format {output_format}')
 
             utils.io.log(f'--- finished syntax pipeline')
+            
 
         # Calculate PMI
         # utils.GrabNGrams(sent_rows,pmi_paths)
@@ -191,7 +191,7 @@ def run_sentence_features_pipeline(input_file: str, stop_words_file: str = None,
             if any('glove' in model or 'word2vec' in model for models, _ in models_and_methods for model in models):
                 # get a vocabulary across all sentences given as input
                 # as the first step, remove any punctuation from the tokens
-                stripped_tokens = utils.text.strip_words(chain(*[s.tokens for s in sentences]), method='punctuation')
+                stripped_tokens = utils.text.strip_words(chain(*[s.tokens for s in sentence_batch]), method='punctuation')
                 # assemble a set of unique tokens
                 vocab = set(stripped_tokens)
                 # make a spurious function call so that loading glove is cached for subsequent calls
@@ -208,13 +208,13 @@ def run_sentence_features_pipeline(input_file: str, stop_words_file: str = None,
             else:
                 embedding_features = [embedding.get_features(sentence, models_and_methods=models_and_methods, 
                                                              vocab=vocab, data_dir=emb_data_dir)
-                                      for i, sentence in enumerate(tqdm(sentences, desc='Embedding pipeline'))]
+                                      for i, sentence in enumerate(tqdm(sentence_batch, desc='Embedding pipeline'))]
 
             # a misc. stat being computed that needs to be handled better 
             # "no" means no. the stat below is counting how many sentences have NO content words (not to be confused with num. content words)
-            no_content_words = len(sentences)-sum(any(s.content_words) for s in sentences)
+            no_content_words = len(sentences)-sum(any(s.content_words) for s in sentence_batch)
 
-            utils.io.log(f'sentences without any content words: {no_content_words}/{len(sentences)}; {no_content_words/len(sentences):.2f}')
+            utils.io.log(f'sentences without any content words: {no_content_words}/{len(sentence_batch)}; {no_content_words/len(sentence_batch):.2f}')
 
             embedding_out = output_dir / 'embedding'
             embedding_out.mkdir(parents=True, exist_ok=True)
