@@ -43,30 +43,40 @@ def get_features(sentence: sentspace.Sentence.Sentence, lock=None) -&gt; dict:
     # io.log(f&#39;computing lexical featuures for `{sentence}`&#39;)
 
     # if lock: lock.acquire()
-    databases = utils.load_databases(features=&#39;all&#39;)
+    databases = utils.load_databases(features=&#34;all&#34;)
     # if lock: lock.release()
 
-    features_from_database = utils.get_all_features(sentence, databases)  # lexical features
-        
+    features_from_database = utils.get_all_features(
+        sentence, databases
+    )  # lexical features
+
     # Rename keys in features_from_database if they exist in feat_rename_dict
     for key, val in features_from_database.copy().items():
         if key in feat_rename_dict:
-            features_from_database[feat_rename_dict[key]] = features_from_database.pop(key)
-    
+            features_from_database[feat_rename_dict[key]] = features_from_database.pop(
+                key
+            )
+
     # TODO[?] return dict of lists, to be consistent with API?
     # return list of token-level features, as a dict per token
     returnable = []
     for i, token in enumerate(sentence.tokens):
-        db_features_slice = {feature: features_from_database[feature][i] for feature in features_from_database}
-        
-        returnable += [{&#39;index&#39;: sentence.uid,
-                        &#39;sentence&#39;: str(sentence),
-                        &#39;token&#39;: token,
-                        &#39;lemma&#39;: sentence.lemmas[i],
-                        &#39;tag&#39;: sentence.pos_tags[i],
-                        &#39;content_word&#39;: sentence.content_words[i],
-                        **db_features_slice
-                       }]
+        db_features_slice = {
+            feature: features_from_database[feature][i]
+            for feature in features_from_database
+        }
+
+        returnable += [
+            {
+                &#34;index&#34;: sentence.uid,
+                &#34;sentence&#34;: str(sentence),
+                &#34;token&#34;: token,
+                &#34;lemma&#34;: sentence.lemmas[i],
+                &#34;tag&#34;: sentence.pos_tags[i],
+                &#34;content_word&#34;: sentence.content_words[i],
+                **db_features_slice,
+            }
+        ]
 
     return returnable</code></pre>
 </details>
@@ -103,30 +113,40 @@ def get_features(sentence: sentspace.Sentence.Sentence, lock=None) -&gt; dict:
     # io.log(f&#39;computing lexical featuures for `{sentence}`&#39;)
 
     # if lock: lock.acquire()
-    databases = utils.load_databases(features=&#39;all&#39;)
+    databases = utils.load_databases(features=&#34;all&#34;)
     # if lock: lock.release()
 
-    features_from_database = utils.get_all_features(sentence, databases)  # lexical features
-        
+    features_from_database = utils.get_all_features(
+        sentence, databases
+    )  # lexical features
+
     # Rename keys in features_from_database if they exist in feat_rename_dict
     for key, val in features_from_database.copy().items():
         if key in feat_rename_dict:
-            features_from_database[feat_rename_dict[key]] = features_from_database.pop(key)
-    
+            features_from_database[feat_rename_dict[key]] = features_from_database.pop(
+                key
+            )
+
     # TODO[?] return dict of lists, to be consistent with API?
     # return list of token-level features, as a dict per token
     returnable = []
     for i, token in enumerate(sentence.tokens):
-        db_features_slice = {feature: features_from_database[feature][i] for feature in features_from_database}
-        
-        returnable += [{&#39;index&#39;: sentence.uid,
-                        &#39;sentence&#39;: str(sentence),
-                        &#39;token&#39;: token,
-                        &#39;lemma&#39;: sentence.lemmas[i],
-                        &#39;tag&#39;: sentence.pos_tags[i],
-                        &#39;content_word&#39;: sentence.content_words[i],
-                        **db_features_slice
-                       }]
+        db_features_slice = {
+            feature: features_from_database[feature][i]
+            for feature in features_from_database
+        }
+
+        returnable += [
+            {
+                &#34;index&#34;: sentence.uid,
+                &#34;sentence&#34;: str(sentence),
+                &#34;token&#34;: token,
+                &#34;lemma&#34;: sentence.lemmas[i],
+                &#34;tag&#34;: sentence.pos_tags[i],
+                &#34;content_word&#34;: sentence.content_words[i],
+                **db_features_slice,
+            }
+        ]
 
     return returnable</code></pre>
 </details>

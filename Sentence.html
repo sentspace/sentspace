@@ -26,8 +26,8 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#39;&#39;&#39;
-&#39;&#39;&#39;
+<pre><code class="python">&#34;&#34;&#34;
+&#34;&#34;&#34;
 
 from collections import defaultdict
 import typing
@@ -39,14 +39,16 @@ import re
 class SentenceBatch(list):
     pass
 
+
 class Sentence:
-    &#39;&#39;&#39;
+    &#34;&#34;&#34;
     a class to keep track of an individual sentence, its tokenized form,
     lemmas, POS tags, and so on.
     contains handy methods to perform the above segmentation/processing
     operations as well as methods for string representation, equality, and
     indexing (on tokenized form)
-    &#39;&#39;&#39;
+    &#34;&#34;&#34;
+
     _uid: str = None
     _raw: str = None
     _tokens: tuple = None
@@ -55,7 +57,7 @@ class Sentence:
     _cleaned: tuple = None
     _content: tuple = None
     _lower: tuple = None
-    
+
     def __init__(self, raw: str, uid: str = None, warn: bool = True) -&gt; None:
         &#34;&#34;&#34;Sentence constructor
 
@@ -65,10 +67,10 @@ class Sentence:
             warn (bool, optional): whether to warn that a UID is not supplied if one isn&#39;t given.
                                    can be set to False to suppress warning in case of intentional
                                    UID-less usage
-        &#34;&#34;&#34;        
-        self._raw = re.sub(r&#39; +&#39;, r&#39; &#39;, raw.strip())
+        &#34;&#34;&#34;
+        self._raw = re.sub(r&#34; +&#34;, r&#34; &#34;, raw.strip())
         if uid is None and warn:
-            io.log(f&#39;no UID supplied for sentence {raw}\r&#39;, type=&#39;WARN&#39;)
+            io.log(f&#34;no UID supplied for sentence {raw}\r&#34;, type=&#34;WARN&#34;)
         self._uid = uid
         self.OOV = defaultdict(set)
 
@@ -76,8 +78,8 @@ class Sentence:
         return hash(self._raw)
 
     def __bool__(self) -&gt; bool:
-        &#39;&#39;&#39;Boolean value the sentence evaluates to.&#39;&#39;&#39;
-        return self._raw != &#39;&#39;
+        &#34;&#34;&#34;Boolean value the sentence evaluates to.&#34;&#34;&#34;
+        return self._raw != &#34;&#34;
 
     def __eq__(self, other) -&gt; bool:
         &#34;&#34;&#34;Equality operation with other sentences. Simply compares raw string.
@@ -87,7 +89,7 @@ class Sentence:
 
         Returns:
             bool: True if self is equal to other, else False
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         return str(self) == str(other)
 
     def __repr__(self) -&gt; str:
@@ -96,22 +98,23 @@ class Sentence:
 
         Returns:
             str: representation of self
-        &#34;&#34;&#34;        
-        return f&#39;&lt;{self._uid}&gt;\t {self._raw:&lt;32}&#39;
+        &#34;&#34;&#34;
+        return f&#34;&lt;{self._uid}&gt;\t {self._raw:&lt;32}&#34;
+
     def __str__(self) -&gt; str:
         &#34;&#34;&#34;Returns raw string representation
 
         Returns:
             str: raw string
-        &#34;&#34;&#34;        
-        return f&#39;{self._raw}&#39;
+        &#34;&#34;&#34;
+        return f&#34;{self._raw}&#34;
 
     def __len__(self) -&gt; int:
         &#34;&#34;&#34;Compute length of the sentence in terms of # of tokens
 
         Returns:
             int: # of tokens in this sentence (according to the default tokenization method `text.tokenize`)
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         return len(self.tokens)
 
     def __getitem__(self, key: slice) -&gt; str:
@@ -126,7 +129,7 @@ class Sentence:
         return self.tokens[key]
 
     def __iter__(self):
-        &#39;&#39;&#39;we are iterable, so we return an iterator over tokens&#39;&#39;&#39;
+        &#34;&#34;&#34;we are iterable, so we return an iterator over tokens&#34;&#34;&#34;
         return iter(self.tokens)
 
     @property
@@ -136,6 +139,7 @@ class Sentence:
     @property
     def tokens(self) -&gt; typing.Tuple[str]:
         return self.tokenized()
+
     # ^
     def tokenized(self, tokenize_method=text.tokenize) -&gt; typing.Tuple[str]:
         &#34;&#34;&#34;Tokenize and store tokenized form as a tuple. The tokenize_method is executed only
@@ -146,7 +150,7 @@ class Sentence:
 
         Returns:
             tuple: tokenized form
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         if self._tokens is None:
             self._tokens = tuple(tokenize_method(self._raw.lower()))
         return self._tokens
@@ -157,7 +161,7 @@ class Sentence:
 
     #     Returns:
     #         typing.Tuple[str]: tuple of lowercased tokens from this sentence
-    #     &#34;&#34;&#34;        
+    #     &#34;&#34;&#34;
     #     if self._lower is None:
     #         self._lower = [*map(lambda x: x.lower, self.tokenized())]
     #     return self._lower
@@ -165,6 +169,7 @@ class Sentence:
     @property
     def pos_tags(self) -&gt; typing.Tuple[str]:
         return self.pos_tagged()
+
     # ^
     def pos_tagged(self) -&gt; typing.Tuple[str]:
         &#34;&#34;&#34;POS-tag the sentence and return the result. Note, this method is also executed
@@ -172,7 +177,7 @@ class Sentence:
 
         Returns:
             tuple: POS tags
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         if self._pos is None:
             self._pos = text.get_pos_tags(self.tokens)
         return self._pos
@@ -180,13 +185,14 @@ class Sentence:
     @property
     def lemmas(self) -&gt; typing.Tuple[str]:
         return self.lemmatized()
+
     # ^
     def lemmatized(self) -&gt; typing.Tuple[str]:
         &#34;&#34;&#34;Lemmatize and return the lemmas
 
         Returns:
             tuple: Lemmas
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         if self._lemmas is None:
             self._lemmas = text.get_lemmatized_tokens(self.tokens, self.pos_tags)
         return self._lemmas
@@ -195,7 +201,9 @@ class Sentence:
     def clean_tokens(self) -&gt; typing.Tuple[str]:
         if self._cleaned is None:
             nonletters = text.get_nonletters(self.tokens, exceptions=[])
-            self._cleaned = text.strip_words(self.tokens, method=&#39;punctuation&#39;, nonletters=nonletters)
+            self._cleaned = text.strip_words(
+                self.tokens, method=&#34;punctuation&#34;, nonletters=nonletters
+            )
         return self._cleaned
 
     @property
@@ -205,9 +213,11 @@ class Sentence:
 
         Returns:
             List[int]: boolean mask indicating content words
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         if self._content is None:
-            self._content = text.get_is_content(self.pos_tags, content_pos=text.pos_for_content)
+            self._content = text.get_is_content(
+                self.pos_tags, content_pos=text.pos_for_content
+            )
         return self._content</code></pre>
 </details>
 </section>
@@ -247,13 +257,14 @@ UID-less usage</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Sentence:
-    &#39;&#39;&#39;
+    &#34;&#34;&#34;
     a class to keep track of an individual sentence, its tokenized form,
     lemmas, POS tags, and so on.
     contains handy methods to perform the above segmentation/processing
     operations as well as methods for string representation, equality, and
     indexing (on tokenized form)
-    &#39;&#39;&#39;
+    &#34;&#34;&#34;
+
     _uid: str = None
     _raw: str = None
     _tokens: tuple = None
@@ -262,7 +273,7 @@ UID-less usage</dd>
     _cleaned: tuple = None
     _content: tuple = None
     _lower: tuple = None
-    
+
     def __init__(self, raw: str, uid: str = None, warn: bool = True) -&gt; None:
         &#34;&#34;&#34;Sentence constructor
 
@@ -272,10 +283,10 @@ UID-less usage</dd>
             warn (bool, optional): whether to warn that a UID is not supplied if one isn&#39;t given.
                                    can be set to False to suppress warning in case of intentional
                                    UID-less usage
-        &#34;&#34;&#34;        
-        self._raw = re.sub(r&#39; +&#39;, r&#39; &#39;, raw.strip())
+        &#34;&#34;&#34;
+        self._raw = re.sub(r&#34; +&#34;, r&#34; &#34;, raw.strip())
         if uid is None and warn:
-            io.log(f&#39;no UID supplied for sentence {raw}\r&#39;, type=&#39;WARN&#39;)
+            io.log(f&#34;no UID supplied for sentence {raw}\r&#34;, type=&#34;WARN&#34;)
         self._uid = uid
         self.OOV = defaultdict(set)
 
@@ -283,8 +294,8 @@ UID-less usage</dd>
         return hash(self._raw)
 
     def __bool__(self) -&gt; bool:
-        &#39;&#39;&#39;Boolean value the sentence evaluates to.&#39;&#39;&#39;
-        return self._raw != &#39;&#39;
+        &#34;&#34;&#34;Boolean value the sentence evaluates to.&#34;&#34;&#34;
+        return self._raw != &#34;&#34;
 
     def __eq__(self, other) -&gt; bool:
         &#34;&#34;&#34;Equality operation with other sentences. Simply compares raw string.
@@ -294,7 +305,7 @@ UID-less usage</dd>
 
         Returns:
             bool: True if self is equal to other, else False
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         return str(self) == str(other)
 
     def __repr__(self) -&gt; str:
@@ -303,22 +314,23 @@ UID-less usage</dd>
 
         Returns:
             str: representation of self
-        &#34;&#34;&#34;        
-        return f&#39;&lt;{self._uid}&gt;\t {self._raw:&lt;32}&#39;
+        &#34;&#34;&#34;
+        return f&#34;&lt;{self._uid}&gt;\t {self._raw:&lt;32}&#34;
+
     def __str__(self) -&gt; str:
         &#34;&#34;&#34;Returns raw string representation
 
         Returns:
             str: raw string
-        &#34;&#34;&#34;        
-        return f&#39;{self._raw}&#39;
+        &#34;&#34;&#34;
+        return f&#34;{self._raw}&#34;
 
     def __len__(self) -&gt; int:
         &#34;&#34;&#34;Compute length of the sentence in terms of # of tokens
 
         Returns:
             int: # of tokens in this sentence (according to the default tokenization method `text.tokenize`)
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         return len(self.tokens)
 
     def __getitem__(self, key: slice) -&gt; str:
@@ -333,7 +345,7 @@ UID-less usage</dd>
         return self.tokens[key]
 
     def __iter__(self):
-        &#39;&#39;&#39;we are iterable, so we return an iterator over tokens&#39;&#39;&#39;
+        &#34;&#34;&#34;we are iterable, so we return an iterator over tokens&#34;&#34;&#34;
         return iter(self.tokens)
 
     @property
@@ -343,6 +355,7 @@ UID-less usage</dd>
     @property
     def tokens(self) -&gt; typing.Tuple[str]:
         return self.tokenized()
+
     # ^
     def tokenized(self, tokenize_method=text.tokenize) -&gt; typing.Tuple[str]:
         &#34;&#34;&#34;Tokenize and store tokenized form as a tuple. The tokenize_method is executed only
@@ -353,7 +366,7 @@ UID-less usage</dd>
 
         Returns:
             tuple: tokenized form
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         if self._tokens is None:
             self._tokens = tuple(tokenize_method(self._raw.lower()))
         return self._tokens
@@ -364,7 +377,7 @@ UID-less usage</dd>
 
     #     Returns:
     #         typing.Tuple[str]: tuple of lowercased tokens from this sentence
-    #     &#34;&#34;&#34;        
+    #     &#34;&#34;&#34;
     #     if self._lower is None:
     #         self._lower = [*map(lambda x: x.lower, self.tokenized())]
     #     return self._lower
@@ -372,6 +385,7 @@ UID-less usage</dd>
     @property
     def pos_tags(self) -&gt; typing.Tuple[str]:
         return self.pos_tagged()
+
     # ^
     def pos_tagged(self) -&gt; typing.Tuple[str]:
         &#34;&#34;&#34;POS-tag the sentence and return the result. Note, this method is also executed
@@ -379,7 +393,7 @@ UID-less usage</dd>
 
         Returns:
             tuple: POS tags
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         if self._pos is None:
             self._pos = text.get_pos_tags(self.tokens)
         return self._pos
@@ -387,13 +401,14 @@ UID-less usage</dd>
     @property
     def lemmas(self) -&gt; typing.Tuple[str]:
         return self.lemmatized()
+
     # ^
     def lemmatized(self) -&gt; typing.Tuple[str]:
         &#34;&#34;&#34;Lemmatize and return the lemmas
 
         Returns:
             tuple: Lemmas
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         if self._lemmas is None:
             self._lemmas = text.get_lemmatized_tokens(self.tokens, self.pos_tags)
         return self._lemmas
@@ -402,7 +417,9 @@ UID-less usage</dd>
     def clean_tokens(self) -&gt; typing.Tuple[str]:
         if self._cleaned is None:
             nonletters = text.get_nonletters(self.tokens, exceptions=[])
-            self._cleaned = text.strip_words(self.tokens, method=&#39;punctuation&#39;, nonletters=nonletters)
+            self._cleaned = text.strip_words(
+                self.tokens, method=&#34;punctuation&#34;, nonletters=nonletters
+            )
         return self._cleaned
 
     @property
@@ -412,9 +429,11 @@ UID-less usage</dd>
 
         Returns:
             List[int]: boolean mask indicating content words
-        &#34;&#34;&#34;        
+        &#34;&#34;&#34;
         if self._content is None:
-            self._content = text.get_is_content(self.pos_tags, content_pos=text.pos_for_content)
+            self._content = text.get_is_content(
+                self.pos_tags, content_pos=text.pos_for_content
+            )
         return self._content</code></pre>
 </details>
 <h3>Instance variables</h3>
@@ -430,7 +449,9 @@ UID-less usage</dd>
 def clean_tokens(self) -&gt; typing.Tuple[str]:
     if self._cleaned is None:
         nonletters = text.get_nonletters(self.tokens, exceptions=[])
-        self._cleaned = text.strip_words(self.tokens, method=&#39;punctuation&#39;, nonletters=nonletters)
+        self._cleaned = text.strip_words(
+            self.tokens, method=&#34;punctuation&#34;, nonletters=nonletters
+        )
     return self._cleaned</code></pre>
 </details>
 </dd>
@@ -454,9 +475,11 @@ def content_words(self) -&gt; typing.List[int]:
 
     Returns:
         List[int]: boolean mask indicating content words
-    &#34;&#34;&#34;        
+    &#34;&#34;&#34;
     if self._content is None:
-        self._content = text.get_is_content(self.pos_tags, content_pos=text.pos_for_content)
+        self._content = text.get_is_content(
+            self.pos_tags, content_pos=text.pos_for_content
+        )
     return self._content</code></pre>
 </details>
 </dd>
@@ -530,7 +553,7 @@ def uid(self) -&gt; str:
 
     Returns:
         tuple: Lemmas
-    &#34;&#34;&#34;        
+    &#34;&#34;&#34;
     if self._lemmas is None:
         self._lemmas = text.get_lemmatized_tokens(self.tokens, self.pos_tags)
     return self._lemmas</code></pre>
@@ -557,7 +580,7 @@ only once ever; each subsequent time a stored value is returned.</p>
 
     Returns:
         tuple: POS tags
-    &#34;&#34;&#34;        
+    &#34;&#34;&#34;
     if self._pos is None:
         self._pos = text.get_pos_tags(self.tokens)
     return self._pos</code></pre>
@@ -592,7 +615,7 @@ the first time; each subsequent call to tokenized() returns the value of a store
 
     Returns:
         tuple: tokenized form
-    &#34;&#34;&#34;        
+    &#34;&#34;&#34;
     if self._tokens is None:
         self._tokens = tuple(tokenize_method(self._raw.lower()))
     return self._tokens</code></pre>

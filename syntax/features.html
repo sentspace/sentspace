@@ -28,6 +28,7 @@
 </summary>
 <pre><code class="python">import pandas as pd
 import sys
+
 if sys.version_info[0] &lt; 3:
     from StringIO import StringIO
 else:
@@ -52,12 +53,13 @@ class Tree:
 
 
 def rawdatatodf(data, sentence=None, identifier=None):
-    df = pd.read_csv(StringIO(data), sep=&#39; &#39;)
-    df.rename(columns={&#39;word&#39;: &#39;token&#39;}, inplace=True)
-    df[&#39;sentence&#39;] = sentence
-    df[&#39;index&#39;] = identifier
-    df = df[[&#39;sentence&#39;, &#39;index&#39;, *df.columns[:-2]]]
+    df = pd.read_csv(StringIO(data), sep=&#34; &#34;)
+    df.rename(columns={&#34;word&#34;: &#34;token&#34;}, inplace=True)
+    df[&#34;sentence&#34;] = sentence
+    df[&#34;index&#34;] = identifier
+    df = df[[&#34;sentence&#34;, &#34;index&#34;, *df.columns[:-2]]]
     return df
+
 
 DLT = LeftCorner = rawdatatodf</code></pre>
 </details>
@@ -79,11 +81,11 @@ DLT = LeftCorner = rawdatatodf</code></pre>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def rawdatatodf(data, sentence=None, identifier=None):
-    df = pd.read_csv(StringIO(data), sep=&#39; &#39;)
-    df.rename(columns={&#39;word&#39;: &#39;token&#39;}, inplace=True)
-    df[&#39;sentence&#39;] = sentence
-    df[&#39;index&#39;] = identifier
-    df = df[[&#39;sentence&#39;, &#39;index&#39;, *df.columns[:-2]]]
+    df = pd.read_csv(StringIO(data), sep=&#34; &#34;)
+    df.rename(columns={&#34;word&#34;: &#34;token&#34;}, inplace=True)
+    df[&#34;sentence&#34;] = sentence
+    df[&#34;index&#34;] = identifier
+    df = df[[&#34;sentence&#34;, &#34;index&#34;, *df.columns[:-2]]]
     return df</code></pre>
 </details>
 </dd>
@@ -97,11 +99,11 @@ DLT = LeftCorner = rawdatatodf</code></pre>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def rawdatatodf(data, sentence=None, identifier=None):
-    df = pd.read_csv(StringIO(data), sep=&#39; &#39;)
-    df.rename(columns={&#39;word&#39;: &#39;token&#39;}, inplace=True)
-    df[&#39;sentence&#39;] = sentence
-    df[&#39;index&#39;] = identifier
-    df = df[[&#39;sentence&#39;, &#39;index&#39;, *df.columns[:-2]]]
+    df = pd.read_csv(StringIO(data), sep=&#34; &#34;)
+    df.rename(columns={&#34;word&#34;: &#34;token&#34;}, inplace=True)
+    df[&#34;sentence&#34;] = sentence
+    df[&#34;index&#34;] = identifier
+    df = df[[&#34;sentence&#34;, &#34;index&#34;, *df.columns[:-2]]]
     return df</code></pre>
 </details>
 </dd>
@@ -115,11 +117,11 @@ DLT = LeftCorner = rawdatatodf</code></pre>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def rawdatatodf(data, sentence=None, identifier=None):
-    df = pd.read_csv(StringIO(data), sep=&#39; &#39;)
-    df.rename(columns={&#39;word&#39;: &#39;token&#39;}, inplace=True)
-    df[&#39;sentence&#39;] = sentence
-    df[&#39;index&#39;] = identifier
-    df = df[[&#39;sentence&#39;, &#39;index&#39;, *df.columns[:-2]]]
+    df = pd.read_csv(StringIO(data), sep=&#34; &#34;)
+    df.rename(columns={&#34;word&#34;: &#34;token&#34;}, inplace=True)
+    df[&#34;sentence&#34;] = sentence
+    df[&#34;index&#34;] = identifier
+    df = df[[&#34;sentence&#34;, &#34;index&#34;, *df.columns[:-2]]]
     return df</code></pre>
 </details>
 </dd>
