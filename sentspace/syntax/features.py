@@ -1,5 +1,6 @@
 import pandas as pd
 import sys
+
 if sys.version_info[0] < 3:
     from StringIO import StringIO
 else:
@@ -24,33 +25,12 @@ class Tree:
 
 
 def rawdatatodf(data, sentence=None, identifier=None):
-    df = pd.read_csv(StringIO(data), sep=' ')
-    df.rename(columns={'word': 'token'}, inplace=True)
-    df['sentence'] = sentence
-    df['index'] = identifier
-    df = df[['sentence', 'index', *df.columns[:-2]]]
+    df = pd.read_csv(StringIO(data), sep=" ")
+    df.rename(columns={"word": "token"}, inplace=True)
+    df["sentence"] = sentence
+    df["index"] = identifier
+    df = df[["sentence", "index", *df.columns[:-2]]]
     return df
 
+
 DLT = LeftCorner = rawdatatodf
-
-
-# class DLT:
-#     """Description of a DLT object"""
-
-#     def __init__(self, data=None):
-#         self.pandas_dataframe = pd.read_csv(StringIO(data), sep=' ')
-#         self.raw = data
-
-#     def __repr__(self):
-#         return repr(self.pandas_dataframe)
-
-
-# class LeftCorner:
-#     """Description of a LeftCorner object"""
-
-#     def __init__(self, data=None):
-#         self.pandas_dataframe = pd.read_csv(StringIO(data), sep=' ')
-#         self.raw = data
-
-#     def __repr__(self):
-#         return repr(self.pandas_dataframe)
