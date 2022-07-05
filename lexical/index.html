@@ -59,26 +59,21 @@ def get_features(sentence: sentspace.Sentence.Sentence, lock=None) -&gt; dict:
 
     # TODO[?] return dict of lists, to be consistent with API?
     # return list of token-level features, as a dict per token
-    returnable = []
     for i, token in enumerate(sentence.tokens):
         db_features_slice = {
             feature: features_from_database[feature][i]
             for feature in features_from_database
         }
 
-        returnable += [
-            {
-                &#34;index&#34;: sentence.uid,
-                &#34;sentence&#34;: str(sentence),
-                &#34;token&#34;: token,
-                &#34;lemma&#34;: sentence.lemmas[i],
-                &#34;tag&#34;: sentence.pos_tags[i],
-                &#34;content_word&#34;: sentence.content_words[i],
-                **db_features_slice,
-            }
-        ]
-
-    return returnable</code></pre>
+        yield {
+            &#34;index&#34;: sentence.uid,
+            &#34;sentence&#34;: str(sentence),
+            &#34;token&#34;: token,
+            &#34;lemma&#34;: sentence.lemmas[i],
+            &#34;tag&#34;: sentence.pos_tags[i],
+            &#34;content_word&#34;: sentence.content_words[i],
+            **db_features_slice,
+        }</code></pre>
 </details>
 </section>
 <section>
@@ -129,26 +124,21 @@ def get_features(sentence: sentspace.Sentence.Sentence, lock=None) -&gt; dict:
 
     # TODO[?] return dict of lists, to be consistent with API?
     # return list of token-level features, as a dict per token
-    returnable = []
     for i, token in enumerate(sentence.tokens):
         db_features_slice = {
             feature: features_from_database[feature][i]
             for feature in features_from_database
         }
 
-        returnable += [
-            {
-                &#34;index&#34;: sentence.uid,
-                &#34;sentence&#34;: str(sentence),
-                &#34;token&#34;: token,
-                &#34;lemma&#34;: sentence.lemmas[i],
-                &#34;tag&#34;: sentence.pos_tags[i],
-                &#34;content_word&#34;: sentence.content_words[i],
-                **db_features_slice,
-            }
-        ]
-
-    return returnable</code></pre>
+        yield {
+            &#34;index&#34;: sentence.uid,
+            &#34;sentence&#34;: str(sentence),
+            &#34;token&#34;: token,
+            &#34;lemma&#34;: sentence.lemmas[i],
+            &#34;tag&#34;: sentence.pos_tags[i],
+            &#34;content_word&#34;: sentence.content_words[i],
+            **db_features_slice,
+        }</code></pre>
 </details>
 </dd>
 </dl>
