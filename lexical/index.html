@@ -57,7 +57,7 @@ def get_features(sentence: sentspace.Sentence.Sentence, lock=None) -&gt; dict:
                 key
             )
 
-    # TODO[?] return dict of lists, to be consistent with API?
+    accumulator = []
     # return list of token-level features, as a dict per token
     for i, token in enumerate(sentence.tokens):
         db_features_slice = {
@@ -65,7 +65,7 @@ def get_features(sentence: sentspace.Sentence.Sentence, lock=None) -&gt; dict:
             for feature in features_from_database
         }
 
-        yield {
+        accumulator += [{
             &#34;index&#34;: sentence.uid,
             &#34;sentence&#34;: str(sentence),
             &#34;token&#34;: token,
@@ -73,7 +73,9 @@ def get_features(sentence: sentspace.Sentence.Sentence, lock=None) -&gt; dict:
             &#34;tag&#34;: sentence.pos_tags[i],
             &#34;content_word&#34;: sentence.content_words[i],
             **db_features_slice,
-        }</code></pre>
+        }]
+
+    return accumulator</code></pre>
 </details>
 </section>
 <section>
@@ -122,7 +124,7 @@ def get_features(sentence: sentspace.Sentence.Sentence, lock=None) -&gt; dict:
                 key
             )
 
-    # TODO[?] return dict of lists, to be consistent with API?
+    accumulator = []
     # return list of token-level features, as a dict per token
     for i, token in enumerate(sentence.tokens):
         db_features_slice = {
@@ -130,7 +132,7 @@ def get_features(sentence: sentspace.Sentence.Sentence, lock=None) -&gt; dict:
             for feature in features_from_database
         }
 
-        yield {
+        accumulator += [{
             &#34;index&#34;: sentence.uid,
             &#34;sentence&#34;: str(sentence),
             &#34;token&#34;: token,
@@ -138,7 +140,9 @@ def get_features(sentence: sentspace.Sentence.Sentence, lock=None) -&gt; dict:
             &#34;tag&#34;: sentence.pos_tags[i],
             &#34;content_word&#34;: sentence.content_words[i],
             **db_features_slice,
-        }</code></pre>
+        }]
+
+    return accumulator</code></pre>
 </details>
 </dd>
 </dl>
