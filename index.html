@@ -33,7 +33,7 @@
 <p><code><a title="sentspace" href="#sentspace">sentspace</a></code> is an open-source tool for characterizing text using diverse features related to how humans process and understand language.
 <code><a title="sentspace" href="#sentspace">sentspace</a></code> characterizes textual input using cognitively motivated lexical, syntactic, and semantic features computed at the token- and sentence level. Features are derived from psycholinguistic experiments, large-scale corpora, and theoretically motivated models of language processing.
 The <code><a title="sentspace" href="#sentspace">sentspace</a></code> features fall into two core modules: Lexical and Contextual. The Lexical module operates on individual lexical items (words) within a sentence and computes a summary representation by combining information across the words in the sentence. This module includes features such as frequency, concreteness, age of acquisition, lexical decision latency, contextual diversity, etc.
-The Contextual module operates on sentences as whole and includes syntactic features, such as the depth of center embedding, and other features, like sentence-level sentiment.</p>
+The Contextual module operates on sentences as whole and includes syntactic features, such as the depth of center embedding, and other features, like language model surprisal.</p>
 <p>New modules can be easily added to SentSpace to provide additional ways to characterize text.
 In this manner, <code><a title="sentspace" href="#sentspace">sentspace</a></code> provides a quantitative and interpretable representation of any sentence. </p>
 <p><strong>Online interface:</strong> <a href="http://sentspace.github.io/hosted">http://sentspace.github.io/hosted</a></p>
@@ -89,7 +89,6 @@ emb_features = sentspace.embedding.get_features(s)
 sentences = [
     'Hello, how may I help you today?',
     'The person purchased three mugs at the price of five!',
-    &quot;She's leaving home.&quot;,
     'This is an example sentence we want features of.'
              ]
 
@@ -156,26 +155,32 @@ pip install -r ./requirements.txt
 polyglot download morph2.en
 </code></pre>
 <h2 id="submodules">Submodules</h2>
-<p>In general, each submodule implements a major class of features. You can run each module on its own by specifying its flag and <code>0</code> or <code>1</code> with the module call:</p>
-<pre><code class="language-bash">python -m sentspace -lex {0,1} -syn {0,1} -emb {0,1} &lt;input_file_path&gt;
+<p>SentSpace features fall into two core modules: Lexical and Contextual.
+In general, each submodule implements a major class of features.
+You can run each module on its own by specifying its flag and <code>0</code> or <code>1</code> with the module call:</p>
+<pre><code class="language-bash">python -m sentspace -lex {0,1} -con {0,1} &lt;input_file_path&gt;
 </code></pre>
+<p>For a full list of available features, refer to the Feature Descriptions page <a href="https://sentspace.github.io/hosted">on the hosted SentSpace frontend</a>.</p>
 <h4 id="sentspacelexical"><code><a title="sentspace.lexical" href="lexical/index.html">sentspace.lexical</a></code></h4>
-<p>Obtain lexical (word-level) features that are not dependendent on the sentence context.
-These features are returned on a word-by-word level and also averaged at the sentence level to provide each sentence a corresponding value.
-- typical age of acquisition
-- n-gram surprisal <code>n={1,2,3,4}</code>
-- etc. (comprehensive list will be updated)</p>
-<h4 id="sentspacesyntax"><code><a title="sentspace.syntax" href="syntax/index.html">sentspace.syntax</a></code></h4>
-<p>Description pending</p>
-<h4 id="sentspaceembedding"><code><a title="sentspace.embedding" href="embedding/index.html">sentspace.embedding</a></code></h4>
-<p>Obtain high dimensional representations of sentences using word-embedding and contextualized encoder models.
+<p>The Lexical module consists of features that pertain to individual lexical items, words, regardless of the context in which they appear.
+These features are returned on a word-by-word level and also aggregated at the sentence level to provide each sentence a corresponding value.</p>
+<h4 id="contextual"><code>contextual</code></h4>
+<p>The Contextual module consists of features that quantify contextual and combinatorial inter-word
+relations that are not captured by individual lexical items. This module encompasses features that
+relate to the syntactic structure of the sentence (<code>Contextual_syntax</code> features) and features that
+apply to the sentence context but are not (exclusively) related to syntactic structure
+(<code>Contextual_misc</code> features).</p>
+<!--
+#### <code><a title="sentspace.embedding" href="embedding/index.html">sentspace.embedding</a></code>
+Obtain high dimensional representations of sentences using word-embedding and contextualized encoder models.
 - <code>glove</code>
-- Huggingface model hub (<code>gpt2-xl</code>, <code>bert-base-uncased</code>)</p>
-<h4 id="semantic"><code>semantic</code></h4>
-<p>Multi-word features computed using partial or full sentence context.
+- Huggingface model hub (`gpt2-xl`, `bert-base-uncased`)
+#### <code>semantic</code>
+Multi-word features computed using partial or full sentence context.
 - PMI (pointwise mutual information)
 - Language model-based perplexity/surprisal
-<em>Not Implemented yet</em></p>
+*Not Implemented yet*
+-->
 <h2 id="contributing">Contributing</h2>
 <p>Any contributions you make are <strong>greatly appreciated</strong>, and no contribution is <em>too small</em> to contribute.</p>
 <ol>
@@ -1056,9 +1061,7 @@ compare the current input against; e.g. UD [optional]</dd>
 </li>
 <li><a href="#submodules">Submodules</a><ul>
 <li><a href="#lexical">lexical</a></li>
-<li><a href="#syntax">syntax</a></li>
-<li><a href="#embedding">embedding</a></li>
-<li><a href="#semantic">semantic</a></li>
+<li><a href="#contextual">contextual</a></li>
 </ul>
 </li>
 <li><a href="#contributing">Contributing</a></li>
