@@ -26,7 +26,7 @@ def get_features(
     # identifier: str = None,
     dlt: bool = True,
     left_corner: bool = True,
-    syntax_server: str = 'http://localhost',
+    syntax_server: str = "http://localhost",
     syntax_port: int = 8000,
 ) -> dict:
     """Obtains contextual/syntactic features for `sentence`
@@ -54,7 +54,6 @@ def get_features(
     dlt_concat, left_corner_concat = None, None
 
     for i, sub_sentence in enumerate(sentences):
-
         features = Feature()
         if dlt or left_corner:
             # io.log(f'parsing into syntax tree: `{sentence}`')
@@ -122,6 +121,14 @@ def get_features(
                     dlt_concat = dlt_concat.groupby("index").mean()
                     dlt_concat["sentence"] = str(sentence)
                 except ValueError:
+                    import traceback
+
+                    io.log(
+                        f"FAILED: ValueError while processing "
+                        f"DLT concatenation for sentence [{sentence}]. Instead supplying empty DataFrame. "
+                        f"traceback: {traceback.format_exc()}",
+                        type="ERR",
+                    )
                     dlt_concat = pd.DataFrame()
             else:
                 dlt_concat = None
@@ -133,6 +140,14 @@ def get_features(
                     left_corner_concat = left_corner_concat.groupby("index").mean()
                     left_corner_concat["sentence"] = str(sentence)
                 except ValueError:
+                    import traceback
+
+                    io.log(
+                        f"FAILED: ValueError while processing "
+                        f"LeftCorner concatenation for sentence [{sentence}]. Instead supplying empty DataFrame. "
+                        f"traceback: {traceback.format_exc()}",
+                        type="ERR",
+                    )
                     left_corner_concat = pd.DataFrame()
             else:
                 left_corner_concat = None
