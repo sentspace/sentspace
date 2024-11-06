@@ -15,6 +15,8 @@ In this manner, `sentspace` provides a quantitative and interpretable representa
 
 **Online interface:** [http://sentspace.github.io/hosted](http://sentspace.github.io/hosted)
 
+**GitHub repository:** [http://github.com/sentspace/sentspace](http://github.com/sentspace/sentspace)
+
 **Screencast video demo:** [https://youtu.be/a66_nvcCakw](https://youtu.be/a66_nvcCakw)
 
 **CLI usage demo:**
