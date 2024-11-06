@@ -7,7 +7,7 @@
 `sentspace` is an open-source tool for characterizing text using diverse features related to how humans process and understand language. 
 `sentspace` characterizes textual input using cognitively motivated lexical, syntactic, and semantic features computed at the token- and sentence level. Features are derived from psycholinguistic experiments, large-scale corpora, and theoretically motivated models of language processing.
 The `sentspace` features fall into two core modules: Lexical and Contextual. The Lexical module operates on individual lexical items (words) within a sentence and computes a summary representation by combining information across the words in the sentence. This module includes features such as frequency, concreteness, age of acquisition, lexical decision latency, contextual diversity, etc.
-The Contextual module operates on sentences as whole and includes syntactic features, such as the depth of center embedding, and other features, like language model surprisal.
+The Contextual module operates on sentences as whole and includes syntactic features, such as the depth of center embedding. Note that using the contextual module requires additional set up steps (see in the setup section below). 
 
 New modules can be easily added to SentSpace to provide additional ways to characterize text.
 In this manner, `sentspace` provides a quantitative and interpretable representation of any sentence. 
@@ -176,7 +176,17 @@ relate to the syntactic structure of the sentence (`Contextual_syntax` features)
 apply to the sentence context but are not (exclusively) related to syntactic structure 
 (`Contextual_misc` features).
 
-
+**⚠ Additional steps to set up the contextual module**
+The core sentspace program doesn't include a syntax server. It therefore needs to query a backend where PCFG processing can happen. 
+You'll need to separately run this backend simultaneously to sentspace so that sentspace can query it and obtain features. 
+The module should be running in a terminal for the duration you're using sentspace, and then you can kill it using Ctrl+C.
+- Here's a link to the module: https://github.com/sentspace/sentspace-syntax-server
+- Jump to the "Setup" section in the readme to run it: https://github.com/sentspace/sentspace-syntax-server?tab=readme-ov-file#setup-how-to-get-it-up-and-running
+- There is a pre-built docker image so that this setup should only need 1 command (sudo docker run -it --net=host --expose 8000 -p 8000:8000 aloxatel/berkeleyparser:latest). There is also a corresponding `singularity` command for HPC cluster environs that works with the same docker image.
+- This will start loading and eventually [it can take 5-10 minutes, it is slow] expose the syntax server on port 8000 (this is just a virtual address so other processes on your computer know where to look!)
+- Now, sentspace can query your localhost port 8000 with sentences to be processed, and it will be returned syntax-based features for further post-processing and packaging into a nice output format similar to rest of sentspace.
+- To make sure it knows to talk to the correct port, you can either pass it into the CLI (--syntax_port 8000) or as an argument to the library function: https://github.com/sentspace/sentspace/blob/4b0f79c7f6dcab6285d3af42101b04b05f421b01/sentspace/__main__.py#L127
+  However, both, the library and the syntax server should default to `localhost:8000` so unless you have a special circumstance, you won't need to worry about this.
 
 
 <!--
