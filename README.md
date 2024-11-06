@@ -24,10 +24,11 @@ In this manner, `sentspace` provides a quantitative and interpretable representa
 <img src="https://i.imgur.com/lI6Wose.gif" alt="drawing" width="800"/>
 
 
-## [Documentation](https://aalok-sathe.github.io/sentspace/index.html) [![CircleCI](https://circleci.com/gh/aalok-sathe/sentspace/tree/main.svg?style=svg)](https://circleci.com/gh/aalok-sathe/sentspace/tree/main)
+## [Documentation](https://sentspace.github.io/sentspace) 
+<!-- [![CircleCI](https://circleci.com/gh/aalok-sathe/sentspace/tree/main.svg?style=svg)](https://circleci.com/gh/aalok-sathe/sentspace/tree/main) -->
 <!-- request read access to the [project doc](https://docs.google.com/document/d/1O1M7T5Ji6KKRvDfI7KQXe_LJ7l9O6_OZA7TEaVP4f8E/edit#). -->
 
-Documentation is generated using `pdoc3` and available online (click on the title above).
+Documentation is available online (click on the title above).
 
 
 ## Usage
