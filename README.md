@@ -13,8 +13,6 @@ New modules can be easily added to SentSpace to provide additional ways to chara
 In this manner, `sentspace` provides a quantitative and interpretable representation of any sentence. 
 
 
-**Online interface:** [http://sentspace.github.io/hosted](http://sentspace.github.io/hosted)
-
 **GitHub repository:** [http://github.com/sentspace/sentspace](http://github.com/sentspace/sentspace)
 
 **Screencast video demo:** [https://youtu.be/a66_nvcCakw](https://youtu.be/a66_nvcCakw)
