@@ -14,7 +14,9 @@ class _LinkStorage:
     load pickles using a download link
     """
 
-    def __init__(self, script_path="download_norms.sh", *args, **kwargs):
+    def __init__(
+        self, script_path=Path(__file__).parent / "download_norms.sh", *args, **kwargs
+    ):
         """
         executes a download script
         """
