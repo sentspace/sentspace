@@ -89,21 +89,13 @@ lex_features = sentspace.utils.parallelize(sentspace.lexical.get_features, sente
 
 ## Installing
 
-### 1. Install using Conda and [Poetry](https://python-poetry.org/)
-Prerequisites: `conda` 
-1. Use your own or create new conda environment: `conda create -n sentspace-env python=3.8` (if using your own, we will assume your environment is called `sentspace-env`)
-   - Activate it: `conda activate sentspace-env`
-2. Install poetry: `curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -` 
-<!-- 3. **Manually install** (`polyglot`)[] dependencies (this step is necessary as some of the packages need to be installed using the system's package manager, rather than `conda` or `pip`) -->
-3. Install `polyglot` dependencies using conda: `conda install -c conda-forge pyicu morfessor icu -y`
-4. Install remaining packages using poetry: `poetry install`
-
-If after the above steps the installation gives you trouble, you may need to refer to: [`polyglot` install instructions](https://polyglot.readthedocs.io/en/latest/Installation.html), which lists how to obtain ICU, a dependency for polyglot.
-
-To use `sentspace` after installation, simply make sure to have the conda environment active and all packages up to date using `poetry install`
+### 1. Install using [uv](https://github.com/astral-sh/uv)
+1. Install `uv`: refer to the link above.
+2. Install packages using `uv` and the `uv.lock` lockfile present in the repo: `uv sync`
+3. Activate the venv: `. ./.venv/bin/activate`
 <br>
 
-### 2. Container-based usage (Recommended!)
+### 2. Container-based usage
 [![CircleCI](https://circleci.com/gh/aalok-sathe/sentspace/tree/circle-ci.svg?style=svg)](https://circleci.com/gh/aalok-sathe/sentspace/tree/circle-ci)
 
 Requirements: `singularity` or `docker`. 
