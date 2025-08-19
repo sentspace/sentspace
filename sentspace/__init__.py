@@ -17,7 +17,7 @@ import sentspace.syntax as syntax
 import sentspace.lexical as lexical
 # import sentspace.embedding as embedding
 
-# from sentspace.Sentence import Sentence
+from sentspace.Sentence import Sentence
 
 import pandas as pd
 from functools import reduce
