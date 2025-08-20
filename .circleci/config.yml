@@ -45,10 +45,13 @@ jobs:
       - checkout
       - run:
           name: Build docs
-          command: pdoc3 --html sentspace --force 
+          command: pdoc3 --html sentspace --force
+      - run:
+          name: Copy graphic assets
+          command: cp -r graphics/ html/sentspace/
       - persist_to_workspace:
           root: html/sentspace
-          paths: '*'
+          paths: "*"
   docs-deploy:
     docker:
       - image: node:8.10.0

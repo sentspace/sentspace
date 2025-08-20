@@ -120,33 +120,37 @@ Alternatively, from the root of the repo, `bash singularity-shell.sh`). this ste
 
 now you are inside the container and ready to run `sentspace`!
 
-### 3. Manual install (use as last resort)
-On Debian/Ubuntu-like systems, follow the steps below. On other systems (RHEL, etc.), 
-substitute commands and package names with appropriate alternates.
-```bash
-# optional (but recommended): 
-# create a virtual environment using your favorite method (venv, conda, ...) 
-# before any of the following
 
-# install basic packages using apt (you likely already have these)
-sudo apt update
-sudo apt install python3.8 python3.8-dev python3-pip
-sudo apt install python2.7 python2.7-dev 
-sudo apt install build-essential git
-
-# install ICU
-DEBIAN_FRONTEND="noninteractive" TZ="America/New_York" sudo apt install python3-icu
-
-# install ZS package separately (pypi install fails)
-python3.8 -m pip install -U pip cython
-git clone https://github.com/njsmith/zs
-cd zs && git checkout v0.10.0 && pip install .
-
-# install rest of the requirements using pip
-cd .. # make sure you're in the sentspace/ directory
-pip install -r ./requirements.txt
-polyglot download morph2.en
-```
+> ⚠ Archived: these instructions are for an older version of sentspace; only kept here in case they assist in troubleshooting.
+> Please follow **1** or **2** above.
+> 
+> *3. Manual install (use as last resort)**
+> On Debian/Ubuntu-like systems, follow the steps below. On other systems (RHEL, etc.), 
+> substitute commands and package names with appropriate alternates.
+> ```bash
+> # optional (but recommended): 
+> # create a virtual environment using your favorite method (venv, conda, ...) 
+> # before any of the following
+> 
+> # install basic packages using apt (you likely already have these)
+> sudo apt update
+> sudo apt install python3.8 python3.8-dev python3-pip
+> sudo apt install python2.7 python2.7-dev 
+> sudo apt install build-essential git
+> 
+> # install ICU
+> DEBIAN_FRONTEND="noninteractive" TZ="America/New_York" sudo apt install python3-icu
+> 
+> # install ZS package separately (pypi install fails)
+> python3.8 -m pip install -U pip cython
+> git clone https://github.com/njsmith/zs
+> cd zs && git checkout v0.10.0 && pip install .
+> 
+> # install rest of the requirements using pip
+> cd .. # make sure you're in the sentspace/ directory
+> pip install -r ./requirements.txt
+> polyglot download morph2.en
+> ```
 
 
 
