@@ -122,32 +122,33 @@ or
 <p>Alternatively, from the root of the repo, <code>bash singularity-shell.sh</code>). this step can take a while when you run it for the first time as it needs to download the image from docker hub and convert it to singularity image format (<code>.sif</code>). however, each subsequent run will execute rapidly. </p>
 <p><strong>Docker:</strong> use <a href="https://docs.docker.com/engine/reference/commandline/exec/">corresponding commands for Docker</a>.</p>
 <p>now you are inside the container and ready to run <code><a title="sentspace" href="#sentspace">sentspace</a></code>!</p>
-<h3 id="3-manual-install-use-as-last-resort">3. Manual install (use as last resort)</h3>
-<p>On Debian/Ubuntu-like systems, follow the steps below. On other systems (RHEL, etc.),
-substitute commands and package names with appropriate alternates.</p>
-<pre><code class="language-bash"># optional (but recommended): 
-# create a virtual environment using your favorite method (venv, conda, ...) 
-# before any of the following
-
-# install basic packages using apt (you likely already have these)
-sudo apt update
+<blockquote>
+<p>⚠ Archived: these instructions are for an older version of sentspace; only kept here in case they assist in troubleshooting.
+Please follow <strong>1</strong> or <strong>2</strong> above.</p>
+<p><em>3. Manual install (use as last resort)</em>*
+On Debian/Ubuntu-like systems, follow the steps below. On other systems (RHEL, etc.),
+substitute commands and package names with appropriate alternates.
+```bash</p>
+<h1 id="optional-but-recommended">optional (but recommended):</h1>
+<h1 id="create-a-virtual-environment-using-your-favorite-method-venv-conda">create a virtual environment using your favorite method (venv, conda, &hellip;)</h1>
+<h1 id="before-any-of-the-following">before any of the following</h1>
+<h1 id="install-basic-packages-using-apt-you-likely-already-have-these">install basic packages using apt (you likely already have these)</h1>
+<p>sudo apt update
 sudo apt install python3.8 python3.8-dev python3-pip
-sudo apt install python2.7 python2.7-dev 
-sudo apt install build-essential git
-
-# install ICU
-DEBIAN_FRONTEND=&quot;noninteractive&quot; TZ=&quot;America/New_York&quot; sudo apt install python3-icu
-
-# install ZS package separately (pypi install fails)
-python3.8 -m pip install -U pip cython
-git clone https://github.com/njsmith/zs
-cd zs &amp;&amp; git checkout v0.10.0 &amp;&amp; pip install .
-
-# install rest of the requirements using pip
-cd .. # make sure you're in the sentspace/ directory
+sudo apt install python2.7 python2.7-dev
+sudo apt install build-essential git</p>
+<h1 id="install-icu">install ICU</h1>
+<p>DEBIAN_FRONTEND="noninteractive" TZ="America/New_York" sudo apt install python3-icu</p>
+<h1 id="install-zs-package-separately-pypi-install-fails">install ZS package separately (pypi install fails)</h1>
+<p>python3.8 -m pip install -U pip cython
+git clone <a href="https://github.com/njsmith/zs">https://github.com/njsmith/zs</a>
+cd zs &amp;&amp; git checkout v0.10.0 &amp;&amp; pip install .</p>
+<h1 id="install-rest-of-the-requirements-using-pip">install rest of the requirements using pip</h1>
+<p>cd .. # make sure you're in the sentspace/ directory
 pip install -r ./requirements.txt
 polyglot download morph2.en
-</code></pre>
+```</p>
+</blockquote>
 <h2 id="submodules">Submodules</h2>
 <p>SentSpace features fall into two core modules: Lexical and Contextual.
 In general, each submodule implements a major class of features.
@@ -732,9 +733,17 @@ compare the current input against; e.g. UD [optional]</dd>
 <li><a href="#installing">Installing</a><ul>
 <li><a href="#1-install-using-uv">1. Install using uv</a></li>
 <li><a href="#2-container-based-usage">2. Container-based usage</a></li>
-<li><a href="#3-manual-install-use-as-last-resort">3. Manual install (use as last resort)</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li><a href="#optional-but-recommended">optional (but recommended):</a></li>
+<li><a href="#create-a-virtual-environment-using-your-favorite-method-venv-conda">create a virtual environment using your favorite method (venv, conda, &hellip;)</a></li>
+<li><a href="#before-any-of-the-following">before any of the following</a></li>
+<li><a href="#install-basic-packages-using-apt-you-likely-already-have-these">install basic packages using apt (you likely already have these)</a></li>
+<li><a href="#install-icu">install ICU</a></li>
+<li><a href="#install-zs-package-separately-pypi-install-fails">install ZS package separately (pypi install fails)</a></li>
+<li><a href="#install-rest-of-the-requirements-using-pip">install rest of the requirements using pip</a><ul>
 <li><a href="#submodules">Submodules</a><ul>
 <li><a href="#lexical">lexical</a></li>
 <li><a href="#contextual">contextual</a></li>
