@@ -128,7 +128,7 @@ def run_sentence_features_pipeline(
                 token_df.to_pickle(
                     lexical_out / f"{token_features_filestem}.pkl.gz", protocol=5
                 )
-                token_df.groupby("sentence").mean().to_pickle(
+                token_df.groupby("sentence").mean(numeric_only=True).to_pickle(
                     lexical_out / f"{sentence_features_filestem}.pkl.gz", protocol=5
                 )
             else:

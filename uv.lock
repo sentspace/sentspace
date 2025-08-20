@@ -325,6 +325,15 @@ wheels = [
 ]
 
 [[package]]
+name = "icu"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/10/43/6777e772d706126c72dd0fc639030789fc5ee6253cfa6ab691016c54b01c/icu-0.0.1.tar.gz", hash = "sha256:89461be7c10a3d32f01f35730e35d5a0cc046e9f72ef56bdb561e35d5064581c", size = 37320 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/89/d8/0972fa39747faea092e8105103f261e01d6cefe262cbe036df8b0b8ada44/icu-0.0.1-py3-none-any.whl", hash = "sha256:6109bf4fa9544e2d66063050648b05711ae31573ae78b44730fa611849c33ff9", size = 49574 },
+]
+
+[[package]]
 name = "idna"
 version = "3.10"
 source = { registry = "https://pypi.org/simple" }
@@ -1141,6 +1150,7 @@ dev = [
     { name = "pdoc3" },
 ]
 polyglot = [
+    { name = "icu" },
     { name = "morfessor" },
     { name = "polyglot" },
     { name = "pycld2" },
@@ -1152,6 +1162,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.20.25,<2.0.0" },
     { name = "dash", specifier = ">=2.0.0,<3.0.0" },
     { name = "dash-bootstrap-components", specifier = ">=1.0.3,<2.0.0" },
+    { name = "icu", marker = "extra == 'polyglot'", specifier = ">=0.0.1" },
     { name = "ipython", marker = "extra == 'dev'", specifier = ">=8.4.0,<9.0.0" },
     { name = "morfessor", marker = "extra == 'polyglot'", specifier = ">=2.0.6,<3.0.0" },
     { name = "nltk", specifier = "==3.6.2" },
@@ -1161,7 +1172,7 @@ requires-dist = [
     { name = "plotly", specifier = ">=5.5.0,<6.0.0" },
     { name = "polyglot", marker = "extra == 'polyglot'", specifier = ">=16.7.4,<17.0.0" },
     { name = "pycld2", marker = "extra == 'polyglot'", specifier = ">=0.41,<1.0.0" },
-    { name = "pyicu", marker = "extra == 'polyglot'", specifier = ">=2.8,<3.0.0" },
+    { name = "pyicu", marker = "extra == 'polyglot'", specifier = ">=2.15.2" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "scipy", specifier = ">=1.7.3,<2.0.0" },
     { name = "seaborn", specifier = "==0.11.2" },

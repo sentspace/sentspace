@@ -91,8 +91,11 @@ lex_features = sentspace.utils.parallelize(sentspace.lexical.get_features, sente
 
 ### 1. Install using [uv](https://github.com/astral-sh/uv)
 1. Install `uv`: refer to the link above.
-2. Install packages using `uv` and the `uv.lock` lockfile present in the repo: `uv sync`
-3. Activate the venv: `. ./.venv/bin/activate`
+1. Install `pyicu`: Installation instruction varies by your OS, and this package lives outside of the python package system so you'll need to manually install it
+   * `ubuntu`: pre-built package is available via `apt`: `sudo apt-get install python3-icu`
+   * `macOS`: see [here](https://pypi.org/project/pyicu/)
+2. Install `sentspace` and its dependencies using `uv` and the `uv.lock` lockfile already present in this repo: `uv sync --extra polyglot` (recommended: install `polyglot` to support additional optional features such as accurate morphological segmentation/lemmatization)
+3. Activate the virtual env: `. ./.venv/bin/activate`
 <br>
 
 ### 2. Container-based usage

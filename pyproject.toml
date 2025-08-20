@@ -20,15 +20,17 @@ dependencies = [
     "numpy>=1.22.1,<2.0.0",
     "dash>=2.0.0,<3.0.0",
     "plotly>=5.5.0,<6.0.0",
-    "dash-bootstrap-components>=1.0.3,<2.0.0"
+    "dash-bootstrap-components>=1.0.3,<2.0.0",
 ]
 
 [project.optional-dependencies]
 polyglot = [
     "polyglot>=16.7.4,<17.0.0",
-    "PyICU>=2.8,<3.0.0",
+    # "PyICU>=2.8,<3.0.0",
     "pycld2>=0.41,<1.0.0",
-    "Morfessor>=2.0.6,<3.0.0"
+    "Morfessor>=2.0.6,<3.0.0",
+    "icu>=0.0.1",
+    "pyicu>=2.15.2",
 ]
 dev = [
     "pdoc3>=0.10.0,<1.0.0",
