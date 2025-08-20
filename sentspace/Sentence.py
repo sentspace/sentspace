@@ -1,5 +1,4 @@
-"""
-"""
+""" """
 
 from collections import defaultdict
 import typing
@@ -43,9 +42,9 @@ class Sentence:
         """
         self._raw = re.sub(r" +", r" ", raw.strip())
         if uid is None and warn:
-            uid = md5(raw)[-5:]
+            uid = md5(raw, raw=True)[-5:]
             io.log(
-                f"no UID supplied for sentence {raw}. Auto-generating: {uid}.\r",
+                f"no UID supplied for sentence {raw}. Auto-generated the UID: {uid}.\r",
                 type="WARN",
             )
         self._uid = uid
