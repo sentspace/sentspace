@@ -54,6 +54,7 @@ def get_features(
     # identifier: str = None,
     dlt: bool = True,
     left_corner: bool = True,
+    syntax_server: str = &#34;http://localhost&#34;,
     syntax_port: int = 8000,
 ) -&gt; dict:
     &#34;&#34;&#34;Obtains contextual/syntactic features for `sentence`
@@ -81,17 +82,16 @@ def get_features(
     dlt_concat, left_corner_concat = None, None
 
     for i, sub_sentence in enumerate(sentences):
-
         features = Feature()
         if dlt or left_corner:
             # io.log(f&#39;parsing into syntax tree: `{sentence}`&#39;)
             # parsed = parse_input(sentence)
             try:
-                server_url = f&#34;http://localhost:{syntax_port}/fullberk&#34;
+                server_url = f&#34;{syntax_server}:{syntax_port}/fullberk&#34;
                 features.tree = Tree(
                     utils.compute_trees(sub_sentence, server_url=server_url)
                 )
-                if type(features.tree) is RuntimeError:
+                if type(features.tree) == RuntimeError:
                     raise features.tree
 
                 getattr(features.tree, &#34;raw&#34;)
@@ -149,6 +149,14 @@ def get_features(
                     dlt_concat = dlt_concat.groupby(&#34;index&#34;).mean()
                     dlt_concat[&#34;sentence&#34;] = str(sentence)
                 except ValueError:
+                    import traceback
+
+                    io.log(
+                        f&#34;FAILED: ValueError while processing &#34;
+                        f&#34;DLT concatenation for sentence [{sentence}]. Instead supplying empty DataFrame. &#34;
+                        f&#34;traceback: {traceback.format_exc()}&#34;,
+                        type=&#34;ERR&#34;,
+                    )
                     dlt_concat = pd.DataFrame()
             else:
                 dlt_concat = None
@@ -160,6 +168,14 @@ def get_features(
                     left_corner_concat = left_corner_concat.groupby(&#34;index&#34;).mean()
                     left_corner_concat[&#34;sentence&#34;] = str(sentence)
                 except ValueError:
+                    import traceback
+
+                    io.log(
+                        f&#34;FAILED: ValueError while processing &#34;
+                        f&#34;LeftCorner concatenation for sentence [{sentence}]. Instead supplying empty DataFrame. &#34;
+                        f&#34;traceback: {traceback.format_exc()}&#34;,
+                        type=&#34;ERR&#34;,
+                    )
                     left_corner_concat = pd.DataFrame()
             else:
                 left_corner_concat = None
@@ -202,7 +218,7 @@ def get_features(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="sentspace.syntax.get_features"><code class="name flex">
-<span>def <span class="ident">get_features</span></span>(<span>sentence: <a title="sentspace.Sentence.Sentence" href="../Sentence.html#sentspace.Sentence.Sentence">Sentence</a>, dlt: bool = True, left_corner: bool = True, syntax_port: int = 8000) ‑> dict</span>
+<span>def <span class="ident">get_features</span></span>(<span>sentence: <a title="sentspace.Sentence.Sentence" href="../Sentence.html#sentspace.Sentence.Sentence">Sentence</a>, dlt: bool = True, left_corner: bool = True, syntax_server: str = 'http://localhost', syntax_port: int = 8000) ‑> dict</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Obtains contextual/syntactic features for <code>sentence</code></p>
@@ -230,6 +246,7 @@ Left Corner features [False].</dd>
     # identifier: str = None,
     dlt: bool = True,
     left_corner: bool = True,
+    syntax_server: str = &#34;http://localhost&#34;,
     syntax_port: int = 8000,
 ) -&gt; dict:
     &#34;&#34;&#34;Obtains contextual/syntactic features for `sentence`
@@ -257,17 +274,16 @@ Left Corner features [False].</dd>
     dlt_concat, left_corner_concat = None, None
 
     for i, sub_sentence in enumerate(sentences):
-
         features = Feature()
         if dlt or left_corner:
             # io.log(f&#39;parsing into syntax tree: `{sentence}`&#39;)
             # parsed = parse_input(sentence)
             try:
-                server_url = f&#34;http://localhost:{syntax_port}/fullberk&#34;
+                server_url = f&#34;{syntax_server}:{syntax_port}/fullberk&#34;
                 features.tree = Tree(
                     utils.compute_trees(sub_sentence, server_url=server_url)
                 )
-                if type(features.tree) is RuntimeError:
+                if type(features.tree) == RuntimeError:
                     raise features.tree
 
                 getattr(features.tree, &#34;raw&#34;)
@@ -325,6 +341,14 @@ Left Corner features [False].</dd>
                     dlt_concat = dlt_concat.groupby(&#34;index&#34;).mean()
                     dlt_concat[&#34;sentence&#34;] = str(sentence)
                 except ValueError:
+                    import traceback
+
+                    io.log(
+                        f&#34;FAILED: ValueError while processing &#34;
+                        f&#34;DLT concatenation for sentence [{sentence}]. Instead supplying empty DataFrame. &#34;
+                        f&#34;traceback: {traceback.format_exc()}&#34;,
+                        type=&#34;ERR&#34;,
+                    )
                     dlt_concat = pd.DataFrame()
             else:
                 dlt_concat = None
@@ -336,6 +360,14 @@ Left Corner features [False].</dd>
                     left_corner_concat = left_corner_concat.groupby(&#34;index&#34;).mean()
                     left_corner_concat[&#34;sentence&#34;] = str(sentence)
                 except ValueError:
+                    import traceback
+
+                    io.log(
+                        f&#34;FAILED: ValueError while processing &#34;
+                        f&#34;LeftCorner concatenation for sentence [{sentence}]. Instead supplying empty DataFrame. &#34;
+                        f&#34;traceback: {traceback.format_exc()}&#34;,
+                        type=&#34;ERR&#34;,
+                    )
                     left_corner_concat = pd.DataFrame()
             else:
                 left_corner_concat = None

@@ -43,29 +43,28 @@ from sentspace.utils import caching, io, text
 
 def path_decorator(func):
     &#34;&#34;&#34;Decorator that changes to and from the directory containing scripts
-        for running DLT and Left Corner metrics before and after a function
-        call respectively.
+    for running DLT and Left Corner metrics before and after a function
+    call respectively.
     &#34;&#34;&#34;
 
     def wrapped(*args, **kwargs):
-        &#39;&#39;&#39; function that changes the directory to an expected directory,
-            executes original function with supplied args, and changes
-            back to the same directory we started from
-        &#39;&#39;&#39;
+        &#34;&#34;&#34;function that changes the directory to an expected directory,
+        executes original function with supplied args, and changes
+        back to the same directory we started from
+        &#34;&#34;&#34;
         previous_pwd = os.getcwd()
         target = Path(__file__)
         os.chdir(str(target.parent))
         result = func(*args, **kwargs)
         os.chdir(previous_pwd)
-        return result.decode(&#39;utf-8&#39;).strip()
+        return result.decode(&#34;utf-8&#34;).strip()
 
     return wrapped
 
 
-
 def get_content_ratio(is_content_pos_tag: tuple):
     &#34;&#34;&#34;
-    given boolean list corresponding to a token being a content word, 
+    given boolean list corresponding to a token being a content word,
     calculate the content ratio
     &#34;&#34;&#34;
     return sum(is_content_pos_tag) / len(is_content_pos_tag)
@@ -75,12 +74,14 @@ def get_pronoun_ratio(pos_tags: tuple):
     &#34;&#34;&#34;
     Given sentence calculate the pronoun ratio
     &#34;&#34;&#34;
-    pronoun_tags = {&#39;PRP&#39;, &#39;PRP$&#39;, &#39;WP&#39;, &#39;WP$&#39;}
+    pronoun_tags = {&#34;PRP&#34;, &#34;PRP$&#34;, &#34;WP&#34;, &#34;WP$&#34;}
     return sum(tag in pronoun_tags for tag in pos_tags) / len(pos_tags)
 
 
 # @cache_to_mem
-def get_is_content(taglst: tuple, content_pos=(wordnet.ADJ, wordnet.VERB, wordnet.NOUN, wordnet.ADV)):
+def get_is_content(
+    taglst: tuple, content_pos=(wordnet.ADJ, wordnet.VERB, wordnet.NOUN, wordnet.ADV)
+):
     &#34;&#34;&#34;
     Given list of POS tags, return list of 1 - content word, 0 - not content word
     &#34;&#34;&#34;
@@ -89,56 +90,65 @@ def get_is_content(taglst: tuple, content_pos=(wordnet.ADJ, wordnet.VERB, wordne
 
 @path_decorator
 def tokenize(raw):
-    cmd = [&#39;bash&#39;, &#39;tokenize.sh&#39;, raw.strip()]
+    cmd = [&#34;bash&#34;, &#34;tokenize.sh&#34;, raw.strip()]
     # io.log(f&#39;calling tokenizer like so: `{cmd}`&#39;)
     tokens = subprocess.check_output(cmd)
     # io.log(f&#39;---done--- tokenizer returned output like so: `{tokens}`&#39;)
     return tokens
 
 
-
 @path_decorator
 # @caching.cache_to_disk
-def compute_trees(sentence, server_url=&#39;http://localhost:8000/fullberk&#39;):
-
+def compute_trees(sentence, server_url=&#34;http://localhost:8000/fullberk&#34;):
     # data = f&#39;{{ &#34;sentence&#34;: &#34;{sentence}&#34; }}&#39;
     data = {&#34;sentence&#34;: sentence}
-    r = request.Request(server_url, data=bytes(json.dumps(data), &#39;utf-8&#39;), method=&#39;GET&#39;,
-                        headers={&#39;Content-Type&#39;: &#39;application/json&#39;})
+    r = request.Request(
+        server_url,
+        data=bytes(json.dumps(data), &#34;utf-8&#34;),
+        method=&#34;GET&#34;,
+        headers={&#34;Content-Type&#34;: &#34;application/json&#34;},
+    )
     retries = 3
-    for attempt in range(1, retries+1):
+    for attempt in range(1, retries + 1):
         try:
             with request.urlopen(r) as rq:
                 response = rq.read()
 
         except urllib.error.HTTPError as e:
-            io.log(f&#39;encountered HTTPError on sentence [{sentence}]; attempt {attempt}/{retries}; are you sure the server is running? https://github.com/aalok-sathe/berkeley-interact for instructions&#39;,
-                type=&#39;ERR&#39;)
+            io.log(
+                f&#34;encountered HTTPError on sentence [{sentence}]; attempt {attempt}/{retries}; are you sure the server is running? https://github.com/sentspace/sentspace-syntax-server for instructions&#34;,
+                type=&#34;ERR&#34;,
+            )
             print(e)
             time.sleep(6)
             continue
             exit(1)
 
         except urllib.error.URLError as e:
-            io.log(f&#39;encountered URLError on sentence [{sentence}]; attempt {attempt}/{retries}&#39;, type=&#39;ERR&#39;)
+            io.log(
+                f&#34;encountered URLError on sentence [{sentence}]; attempt {attempt}/{retries}&#34;,
+                type=&#34;ERR&#34;,
+            )
             print(e)
             time.sleep(6)
             continue
             exit(1)
 
         except http.client.RemoteDisconnected as e:
-            io.log(f&#39;encountered http.client.RemoteDisconnected on sentence [{sentence}]; attempt {attempt}/{retries}&#39;, type=&#39;ERR&#39;)
+            io.log(
+                f&#34;encountered http.client.RemoteDisconnected on sentence [{sentence}]; attempt {attempt}/{retries}&#34;,
+                type=&#34;ERR&#34;,
+            )
             print(e)
             time.sleep(6)
             continue
             exit(1)
-        
+
         break
     else:
-        return RuntimeError(f&#39;failed to process [{sentence}] after {retries} retries&#39;)
+        return RuntimeError(f&#34;failed to process [{sentence}] after {retries} retries&#34;)
 
-
-    cmd = [&#39;bash&#39;, &#39;postprocess_trees.sh&#39;, response]
+    cmd = [&#34;bash&#34;, &#34;postprocess_trees.sh&#34;, response]
     # fallback to manually initializing parser
     # cmd = [&#39;bash&#39;, &#39;parse_trees.sh&#39;, tokens]
     trees = subprocess.check_output(cmd)
@@ -147,11 +157,11 @@ def compute_trees(sentence, server_url=&#39;http://localhost:8000/fullberk&#39;)
 
 @path_decorator
 def compute_feature(feature, trees):
-    cmd = [&#39;bash&#39;, feature, trees]
+    cmd = [&#34;bash&#34;, feature, trees]
     try:
         completed = subprocess.run(cmd, check=True, capture_output=True)
     except subprocess.CalledProcessError as e:
-        print(&#39;ERROR&#39;, e.output, e.returncode, sep=&#39;\n&#39;)
+        print(&#34;ERROR&#34;, e.output, e.returncode, sep=&#34;\n&#34;)
         # NOTE we are NOT raising an error here as that messes up the completion of @path_decorator
         # instead we will *return* the Exception instance to be raised at another time
         return RuntimeError(e.output)
@@ -179,16 +189,16 @@ back to the same directory we started from</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def wrapped(*args, **kwargs):
-    &#39;&#39;&#39; function that changes the directory to an expected directory,
-        executes original function with supplied args, and changes
-        back to the same directory we started from
-    &#39;&#39;&#39;
+    &#34;&#34;&#34;function that changes the directory to an expected directory,
+    executes original function with supplied args, and changes
+    back to the same directory we started from
+    &#34;&#34;&#34;
     previous_pwd = os.getcwd()
     target = Path(__file__)
     os.chdir(str(target.parent))
     result = func(*args, **kwargs)
     os.chdir(previous_pwd)
-    return result.decode(&#39;utf-8&#39;).strip()</code></pre>
+    return result.decode(&#34;utf-8&#34;).strip()</code></pre>
 </details>
 </dd>
 <dt id="sentspace.syntax.utils.compute_trees"><code class="name flex">
@@ -203,16 +213,16 @@ back to the same directory we started from</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def wrapped(*args, **kwargs):
-    &#39;&#39;&#39; function that changes the directory to an expected directory,
-        executes original function with supplied args, and changes
-        back to the same directory we started from
-    &#39;&#39;&#39;
+    &#34;&#34;&#34;function that changes the directory to an expected directory,
+    executes original function with supplied args, and changes
+    back to the same directory we started from
+    &#34;&#34;&#34;
     previous_pwd = os.getcwd()
     target = Path(__file__)
     os.chdir(str(target.parent))
     result = func(*args, **kwargs)
     os.chdir(previous_pwd)
-    return result.decode(&#39;utf-8&#39;).strip()</code></pre>
+    return result.decode(&#34;utf-8&#34;).strip()</code></pre>
 </details>
 </dd>
 <dt id="sentspace.syntax.utils.get_content_ratio"><code class="name flex">
@@ -227,7 +237,7 @@ calculate the content ratio</p></div>
 </summary>
 <pre><code class="python">def get_content_ratio(is_content_pos_tag: tuple):
     &#34;&#34;&#34;
-    given boolean list corresponding to a token being a content word, 
+    given boolean list corresponding to a token being a content word,
     calculate the content ratio
     &#34;&#34;&#34;
     return sum(is_content_pos_tag) / len(is_content_pos_tag)</code></pre>
@@ -242,7 +252,9 @@ calculate the content ratio</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_is_content(taglst: tuple, content_pos=(wordnet.ADJ, wordnet.VERB, wordnet.NOUN, wordnet.ADV)):
+<pre><code class="python">def get_is_content(
+    taglst: tuple, content_pos=(wordnet.ADJ, wordnet.VERB, wordnet.NOUN, wordnet.ADV)
+):
     &#34;&#34;&#34;
     Given list of POS tags, return list of 1 - content word, 0 - not content word
     &#34;&#34;&#34;
@@ -262,7 +274,7 @@ calculate the content ratio</p></div>
     &#34;&#34;&#34;
     Given sentence calculate the pronoun ratio
     &#34;&#34;&#34;
-    pronoun_tags = {&#39;PRP&#39;, &#39;PRP$&#39;, &#39;WP&#39;, &#39;WP$&#39;}
+    pronoun_tags = {&#34;PRP&#34;, &#34;PRP$&#34;, &#34;WP&#34;, &#34;WP$&#34;}
     return sum(tag in pronoun_tags for tag in pos_tags) / len(pos_tags)</code></pre>
 </details>
 </dd>
@@ -279,21 +291,21 @@ call respectively.</p></div>
 </summary>
 <pre><code class="python">def path_decorator(func):
     &#34;&#34;&#34;Decorator that changes to and from the directory containing scripts
-        for running DLT and Left Corner metrics before and after a function
-        call respectively.
+    for running DLT and Left Corner metrics before and after a function
+    call respectively.
     &#34;&#34;&#34;
 
     def wrapped(*args, **kwargs):
-        &#39;&#39;&#39; function that changes the directory to an expected directory,
-            executes original function with supplied args, and changes
-            back to the same directory we started from
-        &#39;&#39;&#39;
+        &#34;&#34;&#34;function that changes the directory to an expected directory,
+        executes original function with supplied args, and changes
+        back to the same directory we started from
+        &#34;&#34;&#34;
         previous_pwd = os.getcwd()
         target = Path(__file__)
         os.chdir(str(target.parent))
         result = func(*args, **kwargs)
         os.chdir(previous_pwd)
-        return result.decode(&#39;utf-8&#39;).strip()
+        return result.decode(&#34;utf-8&#34;).strip()
 
     return wrapped</code></pre>
 </details>
@@ -310,16 +322,16 @@ back to the same directory we started from</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def wrapped(*args, **kwargs):
-    &#39;&#39;&#39; function that changes the directory to an expected directory,
-        executes original function with supplied args, and changes
-        back to the same directory we started from
-    &#39;&#39;&#39;
+    &#34;&#34;&#34;function that changes the directory to an expected directory,
+    executes original function with supplied args, and changes
+    back to the same directory we started from
+    &#34;&#34;&#34;
     previous_pwd = os.getcwd()
     target = Path(__file__)
     os.chdir(str(target.parent))
     result = func(*args, **kwargs)
     os.chdir(previous_pwd)
-    return result.decode(&#39;utf-8&#39;).strip()</code></pre>
+    return result.decode(&#34;utf-8&#34;).strip()</code></pre>
 </details>
 </dd>
 </dl>

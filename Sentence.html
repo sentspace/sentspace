@@ -26,13 +26,13 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;
-&#34;&#34;&#34;
+<pre><code class="python">&#34;&#34;&#34; &#34;&#34;&#34;
 
 from collections import defaultdict
 import typing
 import sentspace.utils.text as text
 import sentspace.utils.io as io
+from sentspace.utils.misc import md5
 import re
 
 
@@ -70,7 +70,11 @@ class Sentence:
         &#34;&#34;&#34;
         self._raw = re.sub(r&#34; +&#34;, r&#34; &#34;, raw.strip())
         if uid is None and warn:
-            io.log(f&#34;no UID supplied for sentence {raw}\r&#34;, type=&#34;WARN&#34;)
+            uid = md5(raw, raw=True)[-5:]
+            io.log(
+                f&#34;no UID supplied for sentence {raw}. Auto-generated the UID: {uid}.\r&#34;,
+                type=&#34;WARN&#34;,
+            )
         self._uid = uid
         self.OOV = defaultdict(set)
 
@@ -286,7 +290,11 @@ UID-less usage</dd>
         &#34;&#34;&#34;
         self._raw = re.sub(r&#34; +&#34;, r&#34; &#34;, raw.strip())
         if uid is None and warn:
-            io.log(f&#34;no UID supplied for sentence {raw}\r&#34;, type=&#34;WARN&#34;)
+            uid = md5(raw, raw=True)[-5:]
+            io.log(
+                f&#34;no UID supplied for sentence {raw}. Auto-generated the UID: {uid}.\r&#34;,
+                type=&#34;WARN&#34;,
+            )
         self._uid = uid
         self.OOV = defaultdict(set)
 

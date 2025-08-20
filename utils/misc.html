@@ -28,121 +28,69 @@
 </summary>
 <pre><code class="python">import concurrent.futures
 import hashlib
-import math
-import pdb
-import pickle
 from functools import partial
 from itertools import chain
 from time import time
 
 # import seaborn as sns
 import nltk
+
 # import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import scipy.io as sio
-import scipy.spatial.distance as ssd
-from nltk import pos_tag
-from scipy.stats import percentileofscore, zscore
 from tqdm import tqdm
 
-# from zs import ZS
 
 _START_TIME = time()
-def START_TIME(): return _START_TIME
-
-# lemmas=WordNetLemmatizer()
 
 
-# def import_franklin_sentences_set3(filename):
-#     f2g = []
-#     with open(filename, &#39;r&#39;) as file:
-#         for line in file:
-#             if line.startswith(&#39;passage&#39;) or line == &#39;\n&#39;:
-#                 pass
-#             else:
-#                 f2g.append(line.strip(&#39;\n&#39;).split())
-                
-#     return f2g
-
-# def import_data(filename, dtype=None):
-#     &#34;&#34;&#34;
-#     Import text file with \n after each line.
-#     Pre-computed GloVe vectors can be loaded as:
-#         glove_embed = import_data(&#39;../glove/vectors_243sentences.txt&#39;, dtype=lambda x: float(x))
-
-#     &#34;&#34;&#34;
-#     f1g = []
-#     with gzip.open(filename+&#39;.zip&#39;, &#39;r&#39;) as file:
-#         for line in file:
-#             tokens = line.split()
-#             if dtype:
-#                 tokens = [dtype(token) for token in tokens]
-#             f1g.append(tokens)
-#     return f1g
-
-# def get_wordlst(f1g):
-#     &#34;&#34;&#34;
-#     Given list of sentences (each a list of tokens), return single list of tokens
-#     &#34;&#34;&#34;
-#     wordlst = []
-#     for sentence in f1g:
-#         for word in sentence:
-#             wordlst.append(word)
-#     return wordlst
-
-# def get_sent_num_passsage(f1g, lplst):
-#     &#34;&#34;&#34;
-#     Given list of passage no. for each sentence, return sentence no. within passage (for each word)
-#     &#34;&#34;&#34;
-#     sent_num = 0
-#     snplst = []
-#     current_label = lplst[0]
-#     for sentence, label in zip(f1g, lplst):
-#         sent_num += 1
-#         if label != current_label:
-#             sent_num = 1
-#             current_label = label
-#         for word in sentence:
-#             snplst.append(sent_num)
-#     return snplst
-
+def START_TIME():
+    return _START_TIME
 
 
 # download NLTK data if not already downloaded
 def download_nltk_resources():
-    for category, nltk_resource in [(&#39;taggers&#39;, &#39;averaged_perceptron_tagger&#39;), 
-                                    (&#39;corpora&#39;, &#39;wordnet&#39;),
-                                    (&#39;tokenizers&#39;, &#39;punkt&#39;),
-                                    ]:
+    for category, nltk_resource in [
+        (&#34;taggers&#34;, &#34;averaged_perceptron_tagger&#34;),
+        (&#34;corpora&#34;, &#34;wordnet&#34;),
+        (&#34;tokenizers&#34;, &#34;punkt&#34;),
+    ]:
         try:
-            nltk.data.find(category+&#39;/&#39;+nltk_resource)
+            nltk.data.find(category + &#34;/&#34; + nltk_resource)
         except LookupError as e:
             try:
                 nltk.download(nltk_resource)
             except FileExistsError:
                 pass
 
-def md5(fname) -&gt; str:
-    &#39;&#39;&#39;generates md5sum of the contents of fname
-        fname (str): path to file whose md5sum we want
-    &#39;&#39;&#39;
+
+def md5(fname_or_raw, raw=False) -&gt; str:
+    &#34;&#34;&#34;generates md5sum of the contents of fname
+    fname (str): path to file whose md5sum we want
+    &#34;&#34;&#34;
     hash_md5 = hashlib.md5()
-    with open(fname, &#34;rb&#34;) as f:
+    if raw:
+        chunk = fname_or_raw.encode(&#34;utf-8&#34;)
+        hash_md5.update(chunk)
+        return hash_md5.hexdigest()
+    with open(fname_or_raw, &#34;rb&#34;) as f:
         for chunk in iter(lambda: f.read(4096), b&#34;&#34;):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
+
 def sha1(ob):
     ob_repr = repr(ob)
     hash_object = hashlib.sha1()
-    hash_object.update(ob_repr.encode(&#39;utf-8&#39;))
+    hash_object.update(ob_repr.encode(&#34;utf-8&#34;))
     return hash_object.hexdigest()
 
 
-def parallelize(function, *iterables, wrap_tqdm=True, desc=&#39;&#39;, **kwargs):
+def parallelize(
+    function, *iterables, wrap_tqdm=True, desc=&#34;&#34;, max_workers=None, **kwargs
+):
     &#34;&#34;&#34;parallelizes a function by calling it on the supplied iterables and (static) kwargs.
-       optionally wraps in tqdm for progress visualization 
+       optionally wraps in tqdm for progress visualization
 
     Args:
         function ([type]): [description]
@@ -151,12 +99,19 @@ def parallelize(function, *iterables, wrap_tqdm=True, desc=&#39;&#39;, **kwargs)
 
     Returns:
         [type]: [description]
-    &#34;&#34;&#34;    
+    &#34;&#34;&#34;
     partialfn = partial(function, **kwargs)
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
         if wrap_tqdm:
-            return [*tqdm(executor.map(partialfn, *iterables), total=len(iterables[0]), desc=&#39;[parallelized] &#39;+desc)]
+            return [
+                *tqdm(
+                    executor.map(partialfn, *iterables),
+                    total=len(iterables[0]),
+                    desc=&#34;[parallelized] &#34; + desc,
+                )
+            ]
         return executor.map(partialfn, *iterables)
+
 
 # this might be data-dependent
 def load_passage_labels(filename):
@@ -164,8 +119,9 @@ def load_passage_labels(filename):
     Given .mat file, load and return list of passage no. for each sentence
     &#34;&#34;&#34;
     labelsPassages = sio.loadmat(filename)
-    lP = labelsPassages[&#39;labelsPassageForEachSentence&#39;]
+    lP = labelsPassages[&#34;labelsPassageForEachSentence&#34;]
     return lP.flatten()
+
 
 # this might be data-dependent
 def load_passage_categories(filename):
@@ -173,8 +129,9 @@ def load_passage_categories(filename):
     Given .mat file, load and return list of passage category labels
     &#34;&#34;&#34;
     labelsPassages = sio.loadmat(filename)
-    lP = labelsPassages[&#39;keyPassageCategory&#39;]
+    lP = labelsPassages[&#34;keyPassageCategory&#34;]
     return list(np.hstack(lP[0]))
+
 
 def get_passage_labels(f1g, lplst):
     &#34;&#34;&#34;
@@ -186,414 +143,43 @@ def get_passage_labels(f1g, lplst):
             lplst_word.append(lplst[i])
     return lplst_word
 
+
 # this might be data-dependent
 def load_passage_category(filename):
     &#34;&#34;&#34;
     Given .mat file, return category no. for each passage
     &#34;&#34;&#34;
     labelsPassageCategory = sio.loadmat(filename)
-    lPC = labelsPassageCategory[&#39;labelsPassageCategory&#39;]
-    lPC = np.hsplit(lPC,1)
+    lPC = labelsPassageCategory[&#34;labelsPassageCategory&#34;]
+    lPC = np.hsplit(lPC, 1)
     lpclst = np.array(lPC).tolist()
     lpclst = lpclst[0]
-    lpclst = list(chain.from_iterable(lpclst)) # Accessing the nested lists
+    lpclst = list(chain.from_iterable(lpclst))  # Accessing the nested lists
     return lpclst
 
 
-
 def merge_lists(list_a, list_b, feature=&#34;&#34;):
-    &#39;&#39;&#39;Input: Two lists with potentially missing values.
-       Return: If list 1 contains NA vals, the NA val is replaced by the value in list 2 (either numerical val or np.nan again)
-    &#39;&#39;&#39;
-    # count_a, count_b, count_na = 0, 0, 0
+    &#34;&#34;&#34;Input: Two lists with potentially missing values.
+    Return: If list 1 contains NA vals, the NA val is replaced by the value in list 2 (either numerical val or np.nan again)
+    &#34;&#34;&#34;
     merged = []
 
     for val1, val2 in zip(list_a, list_b):
         merged += [val2 if np.isnan(val1) else val1]
 
-        # if not np.isnan(val1):
-        #     merged.append(val1)
-        #     count_b += 1
-        # else:
-        #     merged.append(val2)
-        #     if not np.isnan(val2):
-        #         count_a += 1
-        #     else:
-        #         count_na += 1
-    
     return merged
 
-    n = len(merged)
-    print(feature, f&#34;| number of values derived from original form: {count_b}, {count_b/n*100:.2f}%&#34;)
-    print(feature, f&#34;| number of values derived from lemmatized form: {count_a}, {count_a/n*100:.2f}%&#34;)
-    print(feature, f&#34;| number of values = NA: {count_na}, {count_na/n*100:.2f}%&#34;)
-    print(&#39;-&#39;*79)
 
-
-# def compile_results(wordlst, wordlst_l, wordlst_lem, taglst, is_content_lst, setlst,
-#                     snlst, lplst_word, snplst, wnslst, catlst, wordlen, merged_vals):
-# def compile_results(wordlst, wordlst_l, wordlst_lem, 
-#                     taglst, is_content_lst, setlst,
-#                     snlst, wordlen, merged_vals):
-#     &#34;&#34;&#34;
-#     Return dataframe: each row is a word &amp; its various associated values
-#     &#34;&#34;&#34;
-#     result = pd.DataFrame({&#39;Word&#39;: wordlst})
-#     result[&#39;Word cleaned&#39;] = wordlst_l
-#     result[&#39;Word lemma&#39;] = wordlst_lem
-
-#     result[&#39;POS&#39;] = taglst
-#     result[&#39;Content/function&#39;] = is_content_lst
-#     result[&#39;Set no.&#39;] = setlst
-#     result[&#39;Sentence no.&#39;] = snlst
-#     #result[&#39;Passage no.&#39;] = lplst_word
-#     #result[&#39;Sentence no. within passage&#39;] = snplst
-#     #result[&#39;Word no. within sentence&#39;] = wnslst
-#     #result[&#39;Broad topic&#39;] = catlst
-#     result[&#39;Specific topic&#39;] = [&#39;&#39;]*len(wordlst)
-#     result[&#39;Word length&#39;] = wordlen
-#     result[&#39;polysemy&#39;] = merged_vals[&#39;polysemy&#39;]
-
-#     # List what you want the columns to be called
-#     cols = {&#39;NRC_Arousal&#39;: &#39;Arousal&#39;, 
-#             &#39;NRC_Valence&#39;: &#39;Valence&#39;, 
-#             &#39;OSC&#39;: &#39;Orthography-Semantics Consistency&#39;, 
-#             &#39;aoa&#39;: &#39;Age of acquisition&#39;, 
-#             &#39;concreteness&#39;: &#39;Concreteness&#39;,
-#             &#39;lexical_decision_RT&#39;: &#39;Lexical decision RT&#39;,
-#             &#39;log_contextual_diversity&#39;: &#39;Contextual diversity (log)&#39;,
-#             &#39;log_lexical_frequency&#39;: &#39;Lexical frequency (log)&#39;,
-#             &#39;n_orthographic_neighbors&#39;: &#39;Frequency of orthographic neighbors&#39;,
-#             &#39;num_morpheme&#39;: &#39;Number of morphemes&#39;,
-#             &#39;prevalence&#39;: &#39;Prevalence&#39;,
-#             &#39;surprisal-3&#39;: &#39;Lexical surprisal&#39;,
-#             &#39;total_degree_centrality&#39;: &#39;Degree centrality&#39;,
-#             &#39;polysemy&#39;:&#39;Polysemy&#39;,
-#             &#39;num_morpheme_poly&#39;:&#39;Number of morphemes poly&#39;,
-#             #&#39;Pronoun Ratio&#39;:&#39;Pronoun Ratio&#39;
-#     }
-
-#     for key, val in cols.items():
-#         result[val] = merged_vals[key]
-#     return result
-    
-
-    
-# def conform_word_lex_df_columns(df):
-#     # List what you want the columns to be called
-#     cols = {&#39;NRC_Arousal&#39;: &#39;Arousal&#39;, 
-#             &#39;NRC_Valence&#39;: &#39;Valence&#39;, 
-#             &#39;OSC&#39;: &#39;Orthography-Semantics Consistency&#39;, 
-#             &#39;aoa&#39;: &#39;Age of acquisition&#39;, 
-#             &#39;concreteness&#39;: &#39;Concreteness&#39;,
-#             &#39;lexical_decision_RT&#39;: &#39;Lexical decision RT&#39;,
-#             &#39;log_contextual_diversity&#39;: &#39;Contextual diversity (log)&#39;,
-#             &#39;log_lexical_frequency&#39;: &#39;Lexical frequency (log)&#39;,
-#             &#39;n_orthographic_neighbors&#39;: &#39;Frequency of orthographic neighbors&#39;,
-#             &#39;num_morpheme&#39;: &#39;Number of morphemes&#39;,
-#             &#39;prevalence&#39;: &#39;Prevalence&#39;,
-#             &#39;surprisal-3&#39;: &#39;Lexical surprisal&#39;,
-#             &#39;total_degree_centrality&#39;: &#39;Degree centrality&#39;,
-#             &#39;polysemy&#39;:&#39;Polysemy&#39;,
-#             &#39;num_morpheme_poly&#39;:&#39;Number of morphemes poly&#39;,
-#     }
-#     df.rename(columns=cols)
-
-#     # Remove empty column that are vestiges of temporary analyses
-#     df = df.drop(columns=[&#39;Specific topic&#39;])
-#     return df
-
-# def transform_features(df, method=&#39;default&#39;, cols_log=None, cols_z=None):
-#     df = df.copy()
-#     if method == &#39;default&#39;:
-#         cols_log = [&#39;Degree centrality&#39;, &#39;Frequency of orthographic neighbors&#39;]
-#     if cols_log:
-#         for col in cols_log:
-#             df[col] = np.log10(df[col].astype(&#39;float&#39;)+1)
-#             df = df.rename({col: col+&#39; (log)&#39;})
-#         df = df.rename(columns={col: col+&#39; (log)&#39; for col in cols_log})
-#     if cols_z:
-#         for col in cols_z:
-#             df[col] = zscore(df[col].astype(&#39;float&#39;), nan_policy=&#39;omit&#39;)
-#         df = df.rename(columns={col: col+&#39; (z)&#39; for col in cols_z})
-#     return df
-    
-# #     return df_main
-
-# def countNA(lst):
-#     &#34;&#34;&#34;
-#     Return number of NAs in a list
-#     &#34;&#34;&#34;
-#     return sum(np.isnan(lst))
-
-# def countNA_df(df, features=&#39;all&#39;):
-#     &#34;&#34;&#34;
-#     Given dataframe of words and feature values
-#     Return list of number of NAs in each word&#39;s features
-#     &#34;&#34;&#34;
-#     if features == &#39;all&#39;:
-#         features = [&#39;Age of acquisition&#39;, &#39;Concreteness&#39;, &#39;Prevalence&#39;, &#39;Arousal&#39;, &#39;Valence&#39;, &#39;Dominance&#39;, &#39;Ambiguity: percentage of dominant&#39;, &#39;Log lexical frequency&#39;, &#39;Lexical surprisal&#39;, &#39;Word length&#39;]
-#     df = df[features]
-#     return list(df.isnull().sum(axis=1))
-
-# def uniqueNA(df, feature):
-#     &#34;&#34;&#34;
-#     Given dataframe of words and feature values &amp; desired feature,
-#     return set of unique words with NA in given feature
-#     &#34;&#34;&#34;
-#     return sorted(set(df[&#39;Word cleaned&#39;][df[feature].isna()]))
-
-# def avgNA(result, feature):
-#     &#34;&#34;&#34;
-#     Return fractions of words with NA (for given feature) in each sentence
-#     &#34;&#34;&#34;
-#     return result.groupby(&#39;Sentence no.&#39;).apply(lambda data: countNA(data[feature])/len(data))
-
-# def get_NA_words(result, wordlst_l, features):
-#     &#34;&#34;&#34;
-#     Return list of words that have NA in at least one of the specified features
-#     &#34;&#34;&#34;
-#     big_u_lst = []
-#     for feature in features:
-#         big_u_lst.extend(uniqueNA(result, feature))
-#     u_lst = sorted(set(big_u_lst))
-#     return (big_u_lst, u_lst)
-
-
-
-
-# def avg_feature(data, feature, method):
-#     &#34;&#34;&#34;
-#     Return average value of feature
-#     &#34;&#34;&#34;
-#     if method==&#39;strict&#39;:
-#         data = data.dropna()
-#     elif method==&#39;all&#39;:
-#         pass
-#     else:
-#         raise ValueError(&#39;Method not recognized&#39;)
-#     return np.nanmean(np.array(data[feature], dtype=float))
-
-# def get_sent_vectors(df, features, method=&#39;strict&#39;, content_only=False,
-#                      save=False, save_path=None, **kwargs):
-#     &#34;&#34;&#34;
-#     Return dataframe of sentence embeddings (each row as a sentence)
-#     Method:
-#         &#39;strict&#39; - if a word has NA in any feature, it is skipped in the sentence average for all features
-#         &#39;all&#39; - use all non-NA values for sentence average in any feature
-#     content_only - if True, use content words only in a sentence
-#     &#34;&#34;&#34;
-#     pronoun_ratios = kwargs.get(&#39;pronoun_ratios&#39;, None)
-#     content_ratios = kwargs.get(&#39;content_ratios&#39;, None)
-    
-#     if content_only:
-#         df = df[df[&#34;Content/function&#34;] == 1]
-#     sent_vectors = pd.DataFrame({&#39;Sentence no.&#39;: df[&#39;Sentence no.&#39;].unique()})
-#     df = df[features + [&#39;Sentence no.&#39;]].groupby(&#39;Sentence no.&#39;)
-#     for name, feature in zip(features, features):
-#         sent_vectors[name] = list(df.apply(lambda data: avg_feature(data, feature, method)))
-#     if pronoun_ratios is not None:
-#         sent_vectors[&#39;Pronoun ratios&#39;] = pronoun_ratios[&#39;pronoun_ratio&#39;]
-#     # if content_ratios is not None:
-#     #     sent_vectors[&#39;Content ratios&#39;] = content_ratios[&#39;content_ratio&#39;]
-#     if save:
-#         sio.savemat(save_path, {&#39;sent_vectors&#39;: sent_vectors.drop(columns=[&#39;Sentence no.&#39;]).to_numpy()})
-#     return sent_vectors
-
-# def get_differential_sents(embed1, embed2, n, result, method=&#39;euclidean&#39;):
-#     &#34;&#34;&#34;
-#     Print sentences with the largest distance between the two input embeddings
-#     Return index of these sentences (return 1-indexed; assume sentence no. are 1-indexed)
-#     &#34;&#34;&#34;
-#     if method == &#39;euclidean&#39;:
-#         func = ssd.euclidean
-#     elif method == &#39;correlation&#39;:
-#         func = ssd.correlation
-#     elif method == &#39;cosine&#39;:
-#         func = ssd.cosine
-#     else:
-#         raise ValueError(&#39;Method not implemented&#39;)
-#     diff = np.array([func(embed1[i], embed2[i]) for i in range(len(embed1))])
-#     top_diff_ind = (-diff).argsort(axis=None)[:n]
-#     top_diff_sent_no = [i+1 for i in top_diff_ind]
-#     print(&#39;Sentences with largest differences:&#39;, top_diff_sent_no)
-#     for i, idx in enumerate(top_diff_ind):
-#         sent_no = idx+1
-#         sent = result[result[&#39;Sentence no.&#39;] == sent_no].sort_values(&#39;Word no. within sentence&#39;)
-#         print(f&#39;{i+1}, sentence {sent_no}: &#39;, list(sent[&#39;Word&#39;]))
-#         # print(&#39;Number of NA features for a word:&#39;, countNA_df(sent, features=&#39;all&#39;))
-#         # print(f&#39;Value in embedding 1: {x[idx]}, embedding 2: {y[idx]}&#39;)
-#         print(f&#39;Distance: {diff[idx]}&#39;)
-#         print()
-#     return top_diff_sent_no
-
-
-
-
-
-
-########## PMI Block ##############
-def GrabNGrams(sentences, save_paths):
-    &#39;&#39;&#39;
-    save paths is a list = 
-        [&#39;output_folder/03252021/PMI/example_pPMI_0.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_pPMI_1.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_pPMI_2.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_ngrams.pkl&#39;, 
-        &#39;output_folder/03252021/PMI/example_nm1grams.pkl&#39;]
-    &#39;&#39;&#39;
-    sample = sentences
-    
-    google1 = ZS(&#39;PMI/google-books-eng-us-all-20120701-1gram.zs&#39;)
-    google2 = ZS(&#39;PMI/google-books-eng-us-all-20120701-2gram.zs&#39;)
-
-    #  break sentences into strings
-    def populate(sentences):
-        ngra = dict()
-        nm1gra = dict()
-        for sentence in sentences:
-            tokens = sentence.lower().split()
-            tokens = [&#39;_START_&#39;] + tokens + [&#39;_END_&#39;]
-            for t in range(0, len(tokens) - 1):
-                ngra[(tokens[t], tokens[t + 1])] = 0
-                #print 0, (tokens[t], tokens[t + 1])
-                nm1gra[tokens[t]] = 0
-            for t in range(0, len(tokens) - 2):
-                ngra[(tokens[t], tokens[t + 2])] = 0
-                #print 1, (tokens[t], tokens[t + 2])
-            for t in range(0, len(tokens) - 3):
-                ngra[(tokens[t], tokens[t + 3])] = 0
-                #print 2, (tokens[t], tokens[t + 3])
-            nm1gra[tokens[len(tokens) - 1]] = 0
-        for t1, t2 in ngra.copy().keys():
-            ngra[(t2, t1)] = 0
-        return ngra, nm1gra
-    
-    ngrams, nm1grams = populate(sample)
-    
-    #  fetch ngram and n-1gram
-    def fetch(ngra, z=google2, zm1=google1):
-        ngram_c = 0
-        ngram_str = &#34; &#34;.join(ngra)
-        #pdb.set_trace()
-        for record in z.search(prefix=ngram_str):
-            entry = record.split()
-            if entry[1] == ngra[1]:
-                ngram_c += int(entry[3])
-        if nm1grams[ngra[0]] &gt; 0:
-            nm1gram_c = nm1grams[ngra[0]]
-        else:
-            nm1gram_c = 0
-            for record in zm1.search(prefix=ngra[0]):
-                entry = record.split()
-                if entry[0] == ngra[0]:
-                    nm1gram_c += int(entry[2])
-        return ngram_c, nm1gram_c
-    
-    surprisals = dict()
-    for ngram in ngrams.copy().keys():
-        #print ngram
-        #pdb.set_trace()
-        ngrams[ngram], nm1grams[ngram[0]] = fetch(ngram)
-    
-    
-    #with open(save_path+&#39;/PMI/ngrams.pkl&#39;, &#39;w&#39;) as f:
-    with open(save_paths[3], &#39;w&#39;) as f:
-        pdb.set_trace()
-        pickle.dump(ngrams, f)
-    
-    
-    #with open(&#39;PMI/nm1grams.pkl&#39;, &#39;w&#39;) as f:
-    with open(save_paths[4], &#39;w&#39;) as f:
-        pickle.dump(nm1grams, f)
-
-
-def pPMI(sentences, save_paths):
-    &#39;&#39;&#39;
-    save paths is a list = 
-        [&#39;output_folder/03252021/PMI/example_pPMI_0.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_pPMI_1.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_pPMI_2.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_ngrams.pkl&#39;, 
-        &#39;output_folder/03252021/PMI/example_nm1grams.pkl&#39;]
-    &#39;&#39;&#39;
-    sample = sentences
-    
-    with open(&#39;PMI/ngrams.pkl&#39;, &#39;r&#39;) as f:
-        ngrams = pickle.load(f)
-    
-    
-    with open(&#39;PMI/nm1grams.pkl&#39;, &#39;r&#39;) as f:
-        nm1grams = pickle.load(f)
-    
-    N = 356033418959 # US american english v2 google ngrams
-    nm1grams[&#39;_START_&#39;] = float(sum([ ngrams[w] for w in ngrams.keys() if w[0] == &#39;_START_&#39;]))
-    
-    
-    def calc_prob(sentences, ngra=ngrams, nm1gra=nm1grams, ALPHA=0.1, lag=0):
-        assert lag &lt;= 2, &#39;impossible lag&#39;
-        results = []
-        Z = len(ngrams.keys())*ALPHA + N
-        for sent in sentences:
-            string = sent[0]
-            tokens = string.lower().split()
-            mi = 0
-            # No lag
-            for t in range(0, len(tokens) - 1):
-                joint_c = log(ngra[(tokens[t], tokens[t + 1])] + ngra[(tokens[t + 1], tokens[t])] + ALPHA)
-                x_c = log(nm1gra[tokens[t]] + ALPHA * len(ngrams.keys()))
-                y_c = log(nm1gra[tokens[t + 1]] + ALPHA * len(ngrams.keys()))
-                pmi = max([0, (joint_c + log(Z) - x_c - y_c) / log(2)])
-                mi += pmi
-            # 1 word lag
-            if lag &gt;= 1:
-                for t in range(0, len(tokens) - 2):
-                    joint_c = log(ngra[(tokens[t], tokens[t + 2])] + ngra[(tokens[t + 2], tokens[t])] + ALPHA)
-                    x_c = log(nm1gra[tokens[t]] + ALPHA * len(ngrams.keys()))
-                    y_c = log(nm1gra[tokens[t + 2]] + ALPHA * len(ngrams.keys()))
-                    pmi = max([0, (joint_c + log(Z) - x_c - y_c) / log(2)])
-                    mi += pmi
-            # 2 word lag
-            if lag &gt;= 2:
-                for t in range(0, len(tokens) - 3):
-                    joint_c = log(ngra[(tokens[t], tokens[t + 3])] + ngra[(tokens[t + 3], tokens[t])] + ALPHA)
-                    x_c = log(nm1gra[tokens[t]] + ALPHA * len(ngrams.keys()))
-                    y_c = log(nm1gra[tokens[t + 3]] + ALPHA * len(ngrams.keys()))
-                    pmi = max([0,(joint_c + log(Z) - x_c - y_c) / log(2)])
-                    mi += pmi
-            results.append(&#39;,&#39;.join(sent[0].strip(&#39;\n&#39;), str(mi)))
-        return results
-    
-    
-    result = calc_prob(sentences, lag=0)
-    printstring = &#34;\n&#34;.join(result)
-    #with open(&#39;PMI/pPMI_0.csv&#39;, &#39;w&#39;) as f:
-    with open(save_paths[0], &#39;w&#39;) as f:
-        f.write(printstring)
-    
-    result = calc_prob(sentences, lag=1)
-    printstring = &#34;\n&#34;.join(result)
-    #with open(&#39;PMI/pPMI_1.csv&#39;, &#39;w&#39;) as f:
-    with open(save_paths[1], &#39;w&#39;) as f:
-        f.write(printstring)
-    
-    result = calc_prob(sentences, lag=2)
-    printstring = &#34;\n&#34;.join(result)
-    # with open(&#39;PMI/pPMI_2.csv&#39;, &#39;w&#39;) as f:
-    with open(save_paths[2], &#39;w&#39;) as f:
-        f.write(printstring)
-########## End PMI Block
-
-def sizeof_fmt(num, suffix=&#39;B&#39;):
-    &#39;&#39;&#39;
+def sizeof_fmt(num, suffix=&#34;B&#34;):
+    &#34;&#34;&#34;
     This function can be used to print out how big a file is
-    &#39;&#39;&#39;
-    &#39;&#39;&#39; by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified&#39;&#39;&#39;
-    for unit in [&#39;&#39;,&#39;Ki&#39;,&#39;Mi&#39;,&#39;Gi&#39;,&#39;Ti&#39;,&#39;Pi&#39;,&#39;Ei&#39;,&#39;Zi&#39;]:
+    &#34;&#34;&#34;
+    &#34;&#34;&#34; by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified&#34;&#34;&#34;
+    for unit in [&#34;&#34;, &#34;Ki&#34;, &#34;Mi&#34;, &#34;Gi&#34;, &#34;Ti&#34;, &#34;Pi&#34;, &#34;Ei&#34;, &#34;Zi&#34;]:
         if abs(num) &lt; 1024.0:
             return &#34;%3.1f %s%s&#34; % (num, unit, suffix)
         num /= 1024.0
-    return &#34;%.1f %s%s&#34; % (num, &#39;Yi&#39;, suffix)</code></pre>
+    return &#34;%.1f %s%s&#34; % (num, &#34;Yi&#34;, suffix)</code></pre>
 </details>
 </section>
 <section>
@@ -603,95 +189,6 @@ def sizeof_fmt(num, suffix=&#39;B&#39;):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="sentspace.utils.misc.GrabNGrams"><code class="name flex">
-<span>def <span class="ident">GrabNGrams</span></span>(<span>sentences, save_paths)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>save paths is a list =
-['output_folder/03252021/PMI/example_pPMI_0.csv',
-'output_folder/03252021/PMI/example_pPMI_1.csv',
-'output_folder/03252021/PMI/example_pPMI_2.csv',
-'output_folder/03252021/PMI/example_ngrams.pkl',
-'output_folder/03252021/PMI/example_nm1grams.pkl']</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def GrabNGrams(sentences, save_paths):
-    &#39;&#39;&#39;
-    save paths is a list = 
-        [&#39;output_folder/03252021/PMI/example_pPMI_0.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_pPMI_1.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_pPMI_2.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_ngrams.pkl&#39;, 
-        &#39;output_folder/03252021/PMI/example_nm1grams.pkl&#39;]
-    &#39;&#39;&#39;
-    sample = sentences
-    
-    google1 = ZS(&#39;PMI/google-books-eng-us-all-20120701-1gram.zs&#39;)
-    google2 = ZS(&#39;PMI/google-books-eng-us-all-20120701-2gram.zs&#39;)
-
-    #  break sentences into strings
-    def populate(sentences):
-        ngra = dict()
-        nm1gra = dict()
-        for sentence in sentences:
-            tokens = sentence.lower().split()
-            tokens = [&#39;_START_&#39;] + tokens + [&#39;_END_&#39;]
-            for t in range(0, len(tokens) - 1):
-                ngra[(tokens[t], tokens[t + 1])] = 0
-                #print 0, (tokens[t], tokens[t + 1])
-                nm1gra[tokens[t]] = 0
-            for t in range(0, len(tokens) - 2):
-                ngra[(tokens[t], tokens[t + 2])] = 0
-                #print 1, (tokens[t], tokens[t + 2])
-            for t in range(0, len(tokens) - 3):
-                ngra[(tokens[t], tokens[t + 3])] = 0
-                #print 2, (tokens[t], tokens[t + 3])
-            nm1gra[tokens[len(tokens) - 1]] = 0
-        for t1, t2 in ngra.copy().keys():
-            ngra[(t2, t1)] = 0
-        return ngra, nm1gra
-    
-    ngrams, nm1grams = populate(sample)
-    
-    #  fetch ngram and n-1gram
-    def fetch(ngra, z=google2, zm1=google1):
-        ngram_c = 0
-        ngram_str = &#34; &#34;.join(ngra)
-        #pdb.set_trace()
-        for record in z.search(prefix=ngram_str):
-            entry = record.split()
-            if entry[1] == ngra[1]:
-                ngram_c += int(entry[3])
-        if nm1grams[ngra[0]] &gt; 0:
-            nm1gram_c = nm1grams[ngra[0]]
-        else:
-            nm1gram_c = 0
-            for record in zm1.search(prefix=ngra[0]):
-                entry = record.split()
-                if entry[0] == ngra[0]:
-                    nm1gram_c += int(entry[2])
-        return ngram_c, nm1gram_c
-    
-    surprisals = dict()
-    for ngram in ngrams.copy().keys():
-        #print ngram
-        #pdb.set_trace()
-        ngrams[ngram], nm1grams[ngram[0]] = fetch(ngram)
-    
-    
-    #with open(save_path+&#39;/PMI/ngrams.pkl&#39;, &#39;w&#39;) as f:
-    with open(save_paths[3], &#39;w&#39;) as f:
-        pdb.set_trace()
-        pickle.dump(ngrams, f)
-    
-    
-    #with open(&#39;PMI/nm1grams.pkl&#39;, &#39;w&#39;) as f:
-    with open(save_paths[4], &#39;w&#39;) as f:
-        pickle.dump(nm1grams, f)</code></pre>
-</details>
-</dd>
 <dt id="sentspace.utils.misc.START_TIME"><code class="name flex">
 <span>def <span class="ident">START_TIME</span></span>(<span>)</span>
 </code></dt>
@@ -701,7 +198,8 @@ def sizeof_fmt(num, suffix=&#39;B&#39;):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def START_TIME(): return _START_TIME</code></pre>
+<pre><code class="python">def START_TIME():
+    return _START_TIME</code></pre>
 </details>
 </dd>
 <dt id="sentspace.utils.misc.download_nltk_resources"><code class="name flex">
@@ -714,12 +212,13 @@ def sizeof_fmt(num, suffix=&#39;B&#39;):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def download_nltk_resources():
-    for category, nltk_resource in [(&#39;taggers&#39;, &#39;averaged_perceptron_tagger&#39;), 
-                                    (&#39;corpora&#39;, &#39;wordnet&#39;),
-                                    (&#39;tokenizers&#39;, &#39;punkt&#39;),
-                                    ]:
+    for category, nltk_resource in [
+        (&#34;taggers&#34;, &#34;averaged_perceptron_tagger&#34;),
+        (&#34;corpora&#34;, &#34;wordnet&#34;),
+        (&#34;tokenizers&#34;, &#34;punkt&#34;),
+    ]:
         try:
-            nltk.data.find(category+&#39;/&#39;+nltk_resource)
+            nltk.data.find(category + &#34;/&#34; + nltk_resource)
         except LookupError as e:
             try:
                 nltk.download(nltk_resource)
@@ -761,7 +260,7 @@ def sizeof_fmt(num, suffix=&#39;B&#39;):
     Given .mat file, load and return list of passage category labels
     &#34;&#34;&#34;
     labelsPassages = sio.loadmat(filename)
-    lP = labelsPassages[&#39;keyPassageCategory&#39;]
+    lP = labelsPassages[&#34;keyPassageCategory&#34;]
     return list(np.hstack(lP[0]))</code></pre>
 </details>
 </dd>
@@ -779,11 +278,11 @@ def sizeof_fmt(num, suffix=&#39;B&#39;):
     Given .mat file, return category no. for each passage
     &#34;&#34;&#34;
     labelsPassageCategory = sio.loadmat(filename)
-    lPC = labelsPassageCategory[&#39;labelsPassageCategory&#39;]
-    lPC = np.hsplit(lPC,1)
+    lPC = labelsPassageCategory[&#34;labelsPassageCategory&#34;]
+    lPC = np.hsplit(lPC, 1)
     lpclst = np.array(lPC).tolist()
     lpclst = lpclst[0]
-    lpclst = list(chain.from_iterable(lpclst)) # Accessing the nested lists
+    lpclst = list(chain.from_iterable(lpclst))  # Accessing the nested lists
     return lpclst</code></pre>
 </details>
 </dd>
@@ -801,12 +300,12 @@ def sizeof_fmt(num, suffix=&#39;B&#39;):
     Given .mat file, load and return list of passage no. for each sentence
     &#34;&#34;&#34;
     labelsPassages = sio.loadmat(filename)
-    lP = labelsPassages[&#39;labelsPassageForEachSentence&#39;]
+    lP = labelsPassages[&#34;labelsPassageForEachSentence&#34;]
     return lP.flatten()</code></pre>
 </details>
 </dd>
 <dt id="sentspace.utils.misc.md5"><code class="name flex">
-<span>def <span class="ident">md5</span></span>(<span>fname) ‑> str</span>
+<span>def <span class="ident">md5</span></span>(<span>fname_or_raw, raw=False) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>generates md5sum of the contents of fname
@@ -815,12 +314,16 @@ fname (str): path to file whose md5sum we want</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def md5(fname) -&gt; str:
-    &#39;&#39;&#39;generates md5sum of the contents of fname
-        fname (str): path to file whose md5sum we want
-    &#39;&#39;&#39;
+<pre><code class="python">def md5(fname_or_raw, raw=False) -&gt; str:
+    &#34;&#34;&#34;generates md5sum of the contents of fname
+    fname (str): path to file whose md5sum we want
+    &#34;&#34;&#34;
     hash_md5 = hashlib.md5()
-    with open(fname, &#34;rb&#34;) as f:
+    if raw:
+        chunk = fname_or_raw.encode(&#34;utf-8&#34;)
+        hash_md5.update(chunk)
+        return hash_md5.hexdigest()
+    with open(fname_or_raw, &#34;rb&#34;) as f:
         for chunk in iter(lambda: f.read(4096), b&#34;&#34;):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()</code></pre>
@@ -837,130 +340,23 @@ Return: If list 1 contains NA vals, the NA val is replaced by the value in list 
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def merge_lists(list_a, list_b, feature=&#34;&#34;):
-    &#39;&#39;&#39;Input: Two lists with potentially missing values.
-       Return: If list 1 contains NA vals, the NA val is replaced by the value in list 2 (either numerical val or np.nan again)
-    &#39;&#39;&#39;
-    # count_a, count_b, count_na = 0, 0, 0
+    &#34;&#34;&#34;Input: Two lists with potentially missing values.
+    Return: If list 1 contains NA vals, the NA val is replaced by the value in list 2 (either numerical val or np.nan again)
+    &#34;&#34;&#34;
     merged = []
 
     for val1, val2 in zip(list_a, list_b):
         merged += [val2 if np.isnan(val1) else val1]
 
-        # if not np.isnan(val1):
-        #     merged.append(val1)
-        #     count_b += 1
-        # else:
-        #     merged.append(val2)
-        #     if not np.isnan(val2):
-        #         count_a += 1
-        #     else:
-        #         count_na += 1
-    
-    return merged
-
-    n = len(merged)
-    print(feature, f&#34;| number of values derived from original form: {count_b}, {count_b/n*100:.2f}%&#34;)
-    print(feature, f&#34;| number of values derived from lemmatized form: {count_a}, {count_a/n*100:.2f}%&#34;)
-    print(feature, f&#34;| number of values = NA: {count_na}, {count_na/n*100:.2f}%&#34;)
-    print(&#39;-&#39;*79)</code></pre>
-</details>
-</dd>
-<dt id="sentspace.utils.misc.pPMI"><code class="name flex">
-<span>def <span class="ident">pPMI</span></span>(<span>sentences, save_paths)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>save paths is a list =
-['output_folder/03252021/PMI/example_pPMI_0.csv',
-'output_folder/03252021/PMI/example_pPMI_1.csv',
-'output_folder/03252021/PMI/example_pPMI_2.csv',
-'output_folder/03252021/PMI/example_ngrams.pkl',
-'output_folder/03252021/PMI/example_nm1grams.pkl']</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def pPMI(sentences, save_paths):
-    &#39;&#39;&#39;
-    save paths is a list = 
-        [&#39;output_folder/03252021/PMI/example_pPMI_0.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_pPMI_1.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_pPMI_2.csv&#39;, 
-        &#39;output_folder/03252021/PMI/example_ngrams.pkl&#39;, 
-        &#39;output_folder/03252021/PMI/example_nm1grams.pkl&#39;]
-    &#39;&#39;&#39;
-    sample = sentences
-    
-    with open(&#39;PMI/ngrams.pkl&#39;, &#39;r&#39;) as f:
-        ngrams = pickle.load(f)
-    
-    
-    with open(&#39;PMI/nm1grams.pkl&#39;, &#39;r&#39;) as f:
-        nm1grams = pickle.load(f)
-    
-    N = 356033418959 # US american english v2 google ngrams
-    nm1grams[&#39;_START_&#39;] = float(sum([ ngrams[w] for w in ngrams.keys() if w[0] == &#39;_START_&#39;]))
-    
-    
-    def calc_prob(sentences, ngra=ngrams, nm1gra=nm1grams, ALPHA=0.1, lag=0):
-        assert lag &lt;= 2, &#39;impossible lag&#39;
-        results = []
-        Z = len(ngrams.keys())*ALPHA + N
-        for sent in sentences:
-            string = sent[0]
-            tokens = string.lower().split()
-            mi = 0
-            # No lag
-            for t in range(0, len(tokens) - 1):
-                joint_c = log(ngra[(tokens[t], tokens[t + 1])] + ngra[(tokens[t + 1], tokens[t])] + ALPHA)
-                x_c = log(nm1gra[tokens[t]] + ALPHA * len(ngrams.keys()))
-                y_c = log(nm1gra[tokens[t + 1]] + ALPHA * len(ngrams.keys()))
-                pmi = max([0, (joint_c + log(Z) - x_c - y_c) / log(2)])
-                mi += pmi
-            # 1 word lag
-            if lag &gt;= 1:
-                for t in range(0, len(tokens) - 2):
-                    joint_c = log(ngra[(tokens[t], tokens[t + 2])] + ngra[(tokens[t + 2], tokens[t])] + ALPHA)
-                    x_c = log(nm1gra[tokens[t]] + ALPHA * len(ngrams.keys()))
-                    y_c = log(nm1gra[tokens[t + 2]] + ALPHA * len(ngrams.keys()))
-                    pmi = max([0, (joint_c + log(Z) - x_c - y_c) / log(2)])
-                    mi += pmi
-            # 2 word lag
-            if lag &gt;= 2:
-                for t in range(0, len(tokens) - 3):
-                    joint_c = log(ngra[(tokens[t], tokens[t + 3])] + ngra[(tokens[t + 3], tokens[t])] + ALPHA)
-                    x_c = log(nm1gra[tokens[t]] + ALPHA * len(ngrams.keys()))
-                    y_c = log(nm1gra[tokens[t + 3]] + ALPHA * len(ngrams.keys()))
-                    pmi = max([0,(joint_c + log(Z) - x_c - y_c) / log(2)])
-                    mi += pmi
-            results.append(&#39;,&#39;.join(sent[0].strip(&#39;\n&#39;), str(mi)))
-        return results
-    
-    
-    result = calc_prob(sentences, lag=0)
-    printstring = &#34;\n&#34;.join(result)
-    #with open(&#39;PMI/pPMI_0.csv&#39;, &#39;w&#39;) as f:
-    with open(save_paths[0], &#39;w&#39;) as f:
-        f.write(printstring)
-    
-    result = calc_prob(sentences, lag=1)
-    printstring = &#34;\n&#34;.join(result)
-    #with open(&#39;PMI/pPMI_1.csv&#39;, &#39;w&#39;) as f:
-    with open(save_paths[1], &#39;w&#39;) as f:
-        f.write(printstring)
-    
-    result = calc_prob(sentences, lag=2)
-    printstring = &#34;\n&#34;.join(result)
-    # with open(&#39;PMI/pPMI_2.csv&#39;, &#39;w&#39;) as f:
-    with open(save_paths[2], &#39;w&#39;) as f:
-        f.write(printstring)</code></pre>
+    return merged</code></pre>
 </details>
 </dd>
 <dt id="sentspace.utils.misc.parallelize"><code class="name flex">
-<span>def <span class="ident">parallelize</span></span>(<span>function, *iterables, wrap_tqdm=True, desc='', **kwargs)</span>
+<span>def <span class="ident">parallelize</span></span>(<span>function, *iterables, wrap_tqdm=True, desc='', max_workers=None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>parallelizes a function by calling it on the supplied iterables and (static) kwargs.
-optionally wraps in tqdm for progress visualization </p>
+optionally wraps in tqdm for progress visualization</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>function</code></strong> :&ensp;<code>[type]</code></dt>
@@ -979,9 +375,11 @@ optionally wraps in tqdm for progress visualization </p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def parallelize(function, *iterables, wrap_tqdm=True, desc=&#39;&#39;, **kwargs):
+<pre><code class="python">def parallelize(
+    function, *iterables, wrap_tqdm=True, desc=&#34;&#34;, max_workers=None, **kwargs
+):
     &#34;&#34;&#34;parallelizes a function by calling it on the supplied iterables and (static) kwargs.
-       optionally wraps in tqdm for progress visualization 
+       optionally wraps in tqdm for progress visualization
 
     Args:
         function ([type]): [description]
@@ -990,11 +388,17 @@ optionally wraps in tqdm for progress visualization </p>
 
     Returns:
         [type]: [description]
-    &#34;&#34;&#34;    
+    &#34;&#34;&#34;
     partialfn = partial(function, **kwargs)
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
         if wrap_tqdm:
-            return [*tqdm(executor.map(partialfn, *iterables), total=len(iterables[0]), desc=&#39;[parallelized] &#39;+desc)]
+            return [
+                *tqdm(
+                    executor.map(partialfn, *iterables),
+                    total=len(iterables[0]),
+                    desc=&#34;[parallelized] &#34; + desc,
+                )
+            ]
         return executor.map(partialfn, *iterables)</code></pre>
 </details>
 </dd>
@@ -1010,7 +414,7 @@ optionally wraps in tqdm for progress visualization </p>
 <pre><code class="python">def sha1(ob):
     ob_repr = repr(ob)
     hash_object = hashlib.sha1()
-    hash_object.update(ob_repr.encode(&#39;utf-8&#39;))
+    hash_object.update(ob_repr.encode(&#34;utf-8&#34;))
     return hash_object.hexdigest()</code></pre>
 </details>
 </dd>
@@ -1023,16 +427,16 @@ optionally wraps in tqdm for progress visualization </p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def sizeof_fmt(num, suffix=&#39;B&#39;):
-    &#39;&#39;&#39;
+<pre><code class="python">def sizeof_fmt(num, suffix=&#34;B&#34;):
+    &#34;&#34;&#34;
     This function can be used to print out how big a file is
-    &#39;&#39;&#39;
-    &#39;&#39;&#39; by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified&#39;&#39;&#39;
-    for unit in [&#39;&#39;,&#39;Ki&#39;,&#39;Mi&#39;,&#39;Gi&#39;,&#39;Ti&#39;,&#39;Pi&#39;,&#39;Ei&#39;,&#39;Zi&#39;]:
+    &#34;&#34;&#34;
+    &#34;&#34;&#34; by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified&#34;&#34;&#34;
+    for unit in [&#34;&#34;, &#34;Ki&#34;, &#34;Mi&#34;, &#34;Gi&#34;, &#34;Ti&#34;, &#34;Pi&#34;, &#34;Ei&#34;, &#34;Zi&#34;]:
         if abs(num) &lt; 1024.0:
             return &#34;%3.1f %s%s&#34; % (num, unit, suffix)
         num /= 1024.0
-    return &#34;%.1f %s%s&#34; % (num, &#39;Yi&#39;, suffix)</code></pre>
+    return &#34;%.1f %s%s&#34; % (num, &#34;Yi&#34;, suffix)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1053,7 +457,6 @@ optionally wraps in tqdm for progress visualization </p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="sentspace.utils.misc.GrabNGrams" href="#sentspace.utils.misc.GrabNGrams">GrabNGrams</a></code></li>
 <li><code><a title="sentspace.utils.misc.START_TIME" href="#sentspace.utils.misc.START_TIME">START_TIME</a></code></li>
 <li><code><a title="sentspace.utils.misc.download_nltk_resources" href="#sentspace.utils.misc.download_nltk_resources">download_nltk_resources</a></code></li>
 <li><code><a title="sentspace.utils.misc.get_passage_labels" href="#sentspace.utils.misc.get_passage_labels">get_passage_labels</a></code></li>
@@ -1062,7 +465,6 @@ optionally wraps in tqdm for progress visualization </p>
 <li><code><a title="sentspace.utils.misc.load_passage_labels" href="#sentspace.utils.misc.load_passage_labels">load_passage_labels</a></code></li>
 <li><code><a title="sentspace.utils.misc.md5" href="#sentspace.utils.misc.md5">md5</a></code></li>
 <li><code><a title="sentspace.utils.misc.merge_lists" href="#sentspace.utils.misc.merge_lists">merge_lists</a></code></li>
-<li><code><a title="sentspace.utils.misc.pPMI" href="#sentspace.utils.misc.pPMI">pPMI</a></code></li>
 <li><code><a title="sentspace.utils.misc.parallelize" href="#sentspace.utils.misc.parallelize">parallelize</a></code></li>
 <li><code><a title="sentspace.utils.misc.sha1" href="#sentspace.utils.misc.sha1">sha1</a></code></li>
 <li><code><a title="sentspace.utils.misc.sizeof_fmt" href="#sentspace.utils.misc.sizeof_fmt">sizeof_fmt</a></code></li>
